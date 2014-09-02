@@ -40,19 +40,69 @@ int usart_getchar(FILE *f) {
 	return UDR0;
 } 
 
+void SRAM_init() 
+{
+	MCUCR |= (1<<SRE); 
+}
+
+void SRAM_test2()
+{
+	volatile char *ext_ram = (char *) 0x1800;
+	unsigned char testvalue = 0;
+	ext_ram[0] = 0;
+	if (ext_ram[0] != testvalue) {
+		printf("SRAM error (write phase): ext_ram[0] = %02X (should be %02X)\r\n", ext_ram[0], testvalue);
+	}
+	
+}
+
+void SRAM_test(void)
+{
+	// Start address for the SRAM
+	volatile char *ext_ram = (char *) 0x1800;
+
+	uint16_t i, werrors, rerrors;
+	werrors = 0;
+	rerrors = 0;
+	unsigned char testvalue;
+
+	printf("Starting SRAM test...\r\n");
+
+	for (i = 0; i < 0x800; i++) {
+		testvalue = ~(i % 256);
+		ext_ram[i] = testvalue;
+		if (ext_ram[i] != testvalue) {
+			printf("SRAM error (write phase): ext_ram[%d] = %02X (should be %02X)\r\n", i, ext_ram[i], testvalue);
+			werrors++;
+		}
+	}
+
+	for (i = 0; i < 0x800; i++) {
+		testvalue = ~(i % 256);
+		if (ext_ram[i] != testvalue) {
+			printf("SRAM error (read phase): ext_ram[%d] = %02X (should be %02X)\r\n", i, ext_ram[i], testvalue);
+			rerrors++;
+		}
+	}
+
+	printf("SRAM test completed with %d errors in write phase and %d errors in read phase\r\n", werrors, rerrors);
+}
+
 int main(void)
 {
-	DDRC = (1 << PC0);
-	PORTC = (1 << PC0);
+	//DDRC = (1 << PC0);
+	//PORTC = (1 << PC0);
 	usart_setup();
+	SRAM_init();
 	
 	int y = 0;
 	char str[10];
 	
-	while(1) {
-		PORTC ^= (1 << PC0);
-		scanf("%s",str);
-		printf("%s\n", str);
-		_delay_ms(250);
+	for(int i = 0; ;i++) {
+		//PORTC ^= (1 << PC0);
+		SRAM_test();
+		// scanf("%s",str);
+		// printf("HEI\n"); // "%s\n", str);
+		// _delay_ms(250);
     }
 }
