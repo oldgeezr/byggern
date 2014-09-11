@@ -17,23 +17,20 @@
 
 int main(void)
 {
-	//DDRC = (1 << PC0);
-	//PORTC = (1 << PC0);
 	usart_setup();
 	SRAM_init();
-	ADC_init();
 	
-	//int y = 0;
-	//char str[10];
+	char result;
 	
+	SRAM_test();
 	for(;;) {
-		//PORTC ^= (1 << PC0);
-		// SRAM_test();
-		printf("lol\n");
-		printf("%d\n", ADC_read());
-		printf("lol2\n");
-		// scanf("%s",str);
-		// printf("HEI\n"); // "%s\n", str);
-		// _delay_ms(250);
+		result = ADC_read(JOY_X);
+		printf("X: %d ", result);
+		
+		result = ADC_read(JOY_Y);
+		printf(" , Y: %d \n", result);
+		
+		_delay_ms(1);
+		
     }
 }
