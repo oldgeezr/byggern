@@ -11,6 +11,7 @@ void ADC_init()
 {
 	// Set interrupt pin 
 	GICR |= (1 << INT2); 
+	sei();
 }
 
 uint8_t ADC_read()

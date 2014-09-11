@@ -29,7 +29,9 @@ int main(void)
 	for(;;) {
 		//PORTC ^= (1 << PC0);
 		// SRAM_test();
+		printf("lol\n");
 		printf("%d\n", ADC_read());
+		printf("lol2\n");
 		// scanf("%s",str);
 		// printf("HEI\n"); // "%s\n", str);
 		// _delay_ms(250);
