@@ -6,6 +6,8 @@ adc.c
 
 gr_13.c
 
+joystick.c
+
 sram.c
 
 uart.c

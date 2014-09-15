@@ -118,6 +118,12 @@
     <Compile Include="gr_13.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="joystick.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="joystick.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="sram.c">
       <SubType>compile</SubType>
     </Compile>
