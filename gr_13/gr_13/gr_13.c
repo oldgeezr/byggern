@@ -15,17 +15,28 @@
 #include "uart.h"
 #include "adc.h"
 #include "joystick.h"
+#include "oled.h"
 
 int main(void)
 {
 	usart_setup();
 	SRAM_init();
 	JOYSTICK_init();
+	OLED_init();
 	
-	char result;
+	// char result;
 	
-	//SRAM_test();
+	SRAM_test();
 	for(;;) {
+		OLED_start();
+		OLED_clear();
+		uint8_t i;
+		for (i = 0; i < 8; i++) {
+			OLED_set_pixel(100, (50 + i));
+			_delay_ms(500);
+		}	
+		// OLED_test();
+		
 		//result = ADC_read(JOY_X);
 		//printf("X: %d ", result);
 		
@@ -33,10 +44,10 @@ int main(void)
 		//printf(" , Y: %d \n", result);
 		
 		//result = JOYSTICK_get_direction();
-		result = ADC_read(JOY_X);
-		printf(" , POS: %d \n", result);
+		//result = ADC_read(JOY_X);
+		//printf(" , POS: %d \n", result);
 		
-		_delay_ms(1);
+		_delay_ms(10);
 		
     }
 }

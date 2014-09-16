@@ -8,6 +8,8 @@ gr_13.c
 
 joystick.c
 
+oled.c
+
 sram.c
 
 uart.c

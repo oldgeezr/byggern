@@ -39,6 +39,7 @@ C_SRCS +=  \
 ../adc.c \
 ../gr_13.c \
 ../joystick.c \
+../oled.c \
 ../sram.c \
 ../uart.c
 
@@ -53,6 +54,7 @@ OBJS +=  \
 adc.o \
 gr_13.o \
 joystick.o \
+oled.o \
 sram.o \
 uart.o
 
@@ -60,6 +62,7 @@ OBJS_AS_ARGS +=  \
 adc.o \
 gr_13.o \
 joystick.o \
+oled.o \
 sram.o \
 uart.o
 
@@ -67,6 +70,7 @@ C_DEPS +=  \
 adc.d \
 gr_13.d \
 joystick.d \
+oled.d \
 sram.d \
 uart.d
 
@@ -74,6 +78,7 @@ C_DEPS_AS_ARGS +=  \
 adc.d \
 gr_13.d \
 joystick.d \
+oled.d \
 sram.d \
 uart.d
 
@@ -99,10 +104,12 @@ LIB_DEP+=
 
 
 
+
+
 ./%.o: .././%.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 4.8.1
-	$(QUOTE)C:\Program Files\Atmel\Atmel Toolchain\AVR8 GCC\Native\3.4.1056\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=atmega162 -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	$(QUOTE)C:\Program Files\Atmel\Atmel Toolchain\AVR8 GCC\Native\3.4.1056\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -O0 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=atmega162 -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
 	@echo Finished building: $<
 	
 
