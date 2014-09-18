@@ -5,7 +5,7 @@
  *  Author: chriram
  */ 
 
-#define F_CPU 4915200
+#define F_CPU 16000000
 
 #include <util/delay.h>
 #include <avr/io.h>
@@ -27,27 +27,13 @@ int main(void)
 	// char result;
 	
 	SRAM_test();
+	
 	for(;;) {
 		OLED_start();
 		OLED_clear();
-		uint8_t i;
-		for (i = 0; i < 8; i++) {
-			OLED_set_pixel(100, (50 + i));
-			_delay_ms(500);
-		}	
-		// OLED_test();
-		
-		//result = ADC_read(JOY_X);
-		//printf("X: %d ", result);
-		
-		//result = ADC_read(JOY_Y);
-		//printf(" , Y: %d \n", result);
-		
-		//result = JOYSTICK_get_direction();
-		//result = ADC_read(JOY_X);
-		//printf(" , POS: %d \n", result);
-		
-		_delay_ms(10);
-		
+		OLED_set_pages(0,0);
+		OLED_set_columns(0,127);
+		OLED_write_string("christoffer");
+		_delay_ms(1000);
     }
 }

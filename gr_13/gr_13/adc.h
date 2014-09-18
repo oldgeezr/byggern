@@ -5,7 +5,7 @@
  *  Author: chriram
  */ 
 
-#define F_CPU 4915200
+#define F_CPU 16000000
 
 #include <avr/io.h>
 #include <avr/interrupt.h>

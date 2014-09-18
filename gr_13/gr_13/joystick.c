@@ -41,7 +41,7 @@ uint8_t JOYSTICK_get_position() {
 	uint8_t x_pos = ADC_read(JOY_X);
 	uint8_t y_pos = ADC_read(JOY_Y);
 	
-	
+	return 0;
 }
 
 uint8_t SLIDER_get_position() {
@@ -49,5 +49,6 @@ uint8_t SLIDER_get_position() {
 	//Button right -> JTAG PF6
 	//Slider left -> JTAG PF5
 	//Slider right -> JTAG PF4
+	return 0;
 }
 
