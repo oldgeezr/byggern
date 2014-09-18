@@ -2,26 +2,11 @@
 
 *.d
 *.o
-*.o
-*.o
-
-kefile	oled string	2 hours ago
-adc.d	working adc & joystick	7 days ago
-adc.o	oled string	2 hours ago
-gr_13.d	oled string	2 hours ago
-gr_13.eep	initial commit	7 days ago
-gr_13.elf	oled string	2 hours ago
-gr_13.hex	oled string	2 hours ago
-gr_13.lss	oled string	2 hours ago
-gr_13.map	oled string	2 hours ago
-gr_13.o	oled string	2 hours ago
-gr_13.srec	oled string	2 hours ago
-joystick.d	Joystick	3 days ago
-joystick.o	oled string	2 hours ago
-makedep.mk	oled shit	2 days ago
-oled.d	oled string	2 hours ago
-oled.o	oled string	2 hours ago
-sram.d	initial commit	7 days ago
-sram.o	oled string	2 hours ago
-uart.d	initial commit	7 days ago
-uart.o
+*.elf
+*.hex
+*.lss
+*.map
+*.srec
+*.mk
+Makefile
+*Debug
