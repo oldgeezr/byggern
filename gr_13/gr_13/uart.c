@@ -6,6 +6,7 @@
  */ 
 
 #include "uart.h"
+#include <avr/io.h>
 
 void usart_setup() 
 {
@@ -14,7 +15,7 @@ void usart_setup()
 	UCSR0C |= (1 << UCSZ01) | (1 << UCSZ00); //8bit. no-parity, 1 stop bit
 	
 	UBRR0H = 0;
-	UBRR0L = 103;
+	UBRR0L = 31;
 	
 	uart = fdevopen(&usart_putchar, &usart_getchar);
 }

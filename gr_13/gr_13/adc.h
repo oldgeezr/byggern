@@ -5,11 +5,10 @@
  *  Author: chriram
  */ 
 
-#define F_CPU 16000000
+#ifndef ADC_H_
+#define ADC_H_
 
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <util/delay.h>
+#include <stdint.h>
 
 typedef enum {
 	JOY_X = 4,
@@ -19,3 +18,5 @@ typedef enum {
 } ADC_channel;
 
 uint8_t ADC_read(ADC_channel ch);
+
+#endif

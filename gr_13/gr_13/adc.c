@@ -7,6 +7,12 @@
 
 #include "adc.h"
 
+#ifndef F_CPU
+#define F_CPU 4915200
+#endif 
+
+#include <util/delay.h>
+
 uint8_t ADC_read(ADC_channel ch)
 {
 	volatile char *adc = (char *) 0x1400;

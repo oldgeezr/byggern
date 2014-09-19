@@ -5,16 +5,16 @@
  *  Author: chriram
  */ 
 
-#include <avr/io.h>
-#include <stdio.h>
+#ifndef UART_H_
+#define UART_H_
 
-int usart_putchar(char c, FILE *f);
-int usart_getchar(FILE *f);
+#include <stdio.h>
 
 FILE *uart;
 
+int usart_putchar(char c, FILE *f);
+int usart_getchar(FILE *f);
+
 void usart_setup();
 
-int usart_putchar(char c, FILE *f);
-
-int usart_getchar(FILE *f);
+#endif

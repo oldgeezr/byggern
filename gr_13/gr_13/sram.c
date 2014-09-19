@@ -6,6 +6,9 @@
  */ 
 
 #include "sram.h"
+#include <avr/io.h>
+#include <stdio.h>
+#include <stdint.h>
 
 void SRAM_init()
 {

@@ -1,6 +1,9 @@
+#ifndef FONT4_H_
+#define FONT4_H_
+
 #include <avr/pgmspace.h>
 
-const unsigned char PROGMEM font[95][4] = {
+const unsigned char PROGMEM font4[95][4] = {
 	{0b00000000,0b00000000,0b00000000,0b00000000}, //
 	{0b00000000,0b01011100,0b00000000,0b00000000}, // !
 	{0b00001100,0b00000000,0b00001100,0b00000000}, // "
@@ -97,3 +100,5 @@ const unsigned char PROGMEM font[95][4] = {
 	{0b10000100,0b01111000,0b00010000,0b00000000}, // }
 	{0b00001000,0b00000100,0b00001000,0b00000100}, // ~
 };
+
+#endif

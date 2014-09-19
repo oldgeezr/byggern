@@ -6,7 +6,13 @@
  */ 
 
 #include "oled.h"
-#include "font_4x6.h"
+#include "font_8x8.h"
+
+#ifndef F_CPU
+#define F_CPU 4915200
+#endif
+
+#include <util/delay.h>
 
 volatile char *command = (char *) 0x1000;
 volatile char *data = (char *) 0x1200;
@@ -73,58 +79,12 @@ void OLED_clear() {
 	}
 }
 
-void OLED_fill() {
-	
-	*command = 0x40; // Set display start line 0 (to 63)
-	
-	char start; // Set page start address of target display location
-	
-	for (uint8_t i = 0; i < 8; i++) {
-		OLED_start();
-		start = 0xB0 | i;
-		*command = start;
-		for (uint8_t j = 0; j < 128; j++) {
-			*data = 0xff;
-		}
-	}
-}
-
-void OLED_set_pixel(uint8_t x, uint8_t y) {
-	/* 128*64*/
-	
-	//Set column address
-	*command = 0x21;
-	*command = 0x00 | x;
-	*command = 0x00 | (x + 1);
-	
-	uint8_t rest = y % 8;
-	uint8_t page = (y - rest)/8;
-	*command = (0xB0 | page);
-	*data |= (1 << rest);
-}
-
-void OLED_test() {
-	
-	OLED_clear();
-	
-	char start;
-	
-	for (uint8_t i = 0; i < 8; i++) {
-		OLED_start();
-		start = 0xB0 | i;
-		*command = start;
-		for (uint8_t j = 0; j < 128; j++) {
-			*data = 0x08;
-			_delay_ms(10);
-		}
-	}
-}
 
 void OLED_write_char(uint8_t character) {
 	
 	uint8_t i = 0;
-	for (i = 0; i < 4; i++) {
-		*data = pgm_read_byte(&font[character-32][i]);
+	for (i = 0; i < 8; i++) {
+		*data = pgm_read_byte(&font8[character-32][i]);
 	}
 	
 }
@@ -141,18 +101,40 @@ void OLED_set_columns(uint8_t x0, uint8_t x1) {
 	*command = x1;
 }
 
+void OLED_scroll_right(uint8_t page_start,uint8_t page_stop) {
+	*command = 0x2E; //Deactivate scroll
+	
+	*command = 0x26; //Vertical scroll setup
+	*command = 0x00; //Dummy byte A
+	*command = page_start; //Start: PAGE0
+	*command = 0b100; //Speed
+	*command = page_stop; //End: PAGE7
+	*command = 0x00;
+	*command = 0xFF;
+	
+	*command = 0x2F; //Start scroll
+	_delay_ms(200);
+	*command = 0x2E; //Deactivate scroll
+}
+
+void OLED_scroll_left(uint8_t page_start,uint8_t page_stop) {
+	*command = 0x2E; //Deactivate scroll
+	
+	*command = 0x27; //Vertical scroll setup
+	*command = 0x00; //Dummy byte A
+	*command = page_start; //Start: PAGE0
+	*command = 0b100; //Speed
+	*command = page_stop; //End: PAGE7
+	*command = 0x00;
+	*command = 0xFF;
+	
+	*command = 0x2F; //Start scroll
+	_delay_ms(200);
+	*command = 0x2E; //Deactivate scroll
+}
+
 void OLED_write_string(char *str) {
 	while(*str) {
 		OLED_write_char(*str++);
-	}
-}
-
-uint8_t OLDE_get_char() {
-	
-	uint8_t byte;
-	
-	uint8_t i;
-	for (i = 0; i < 4; i++) {
-
 	}
 }

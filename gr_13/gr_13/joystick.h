@@ -5,6 +5,9 @@
  *  Author: chriram
  */ 
 
+#ifndef JOYSTICK_H_
+#define JOYSTICK_H_
+
 typedef enum {
 	LEFT = 0,
 	RIGHT = 1,
@@ -16,3 +19,5 @@ typedef enum {
 
 void JOYSTICK_init();
 JOYSTICK_control JOYSTICK_get_direction();
+
+#endif

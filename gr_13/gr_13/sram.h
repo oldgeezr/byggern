@@ -5,12 +5,11 @@
  *  Author: chriram
  */ 
 
-#include <avr/io.h>
-#include <stdio.h>
-#include <stdint.h>
+#ifndef SRAM_H_
+#define SRAM_H_
 
 void SRAM_init();
-
 void SRAM_test(void);
-
 void SRAM_gal_cs_test();
+
+#endif

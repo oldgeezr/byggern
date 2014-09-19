@@ -5,11 +5,10 @@
  *  Author: chriram
  */ 
 
-#define F_CPU 16000000
+#ifndef OLED_H_
+#define OLED_H_
 
 #include <stdint.h>
-#include <util/delay.h>
-#include <avr/pgmspace.h>
 
 void OLED_write_data(char dat);
 void OLED_write_command(char cmd);
@@ -23,3 +22,7 @@ void OLED_write_char(uint8_t character);
 void OLED_set_pages(uint8_t y0, uint8_t y1);
 void OLED_set_columns(uint8_t x0, uint8_t x1);
 void OLED_write_string(char *str);
+void OLED_scroll_right(uint8_t page_start,uint8_t page_stop);
+void OLED_scroll_left(uint8_t page_start,uint8_t page_stop);
+
+#endif
