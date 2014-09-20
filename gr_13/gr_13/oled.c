@@ -113,7 +113,7 @@ void OLED_scroll_right(uint8_t page_start,uint8_t page_stop) {
 	*command = 0xFF;
 	
 	*command = 0x2F; //Start scroll
-	_delay_ms(200);
+	_delay_ms(100);
 	*command = 0x2E; //Deactivate scroll
 }
 
@@ -129,7 +129,7 @@ void OLED_scroll_left(uint8_t page_start,uint8_t page_stop) {
 	*command = 0xFF;
 	
 	*command = 0x2F; //Start scroll
-	_delay_ms(200);
+	_delay_ms(100);
 	*command = 0x2E; //Deactivate scroll
 }
 

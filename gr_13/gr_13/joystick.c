@@ -7,9 +7,10 @@
 
 #include "joystick.h"
 #include "adc.h"
+#include <avr/io.h>
 
 void JOYSTICK_init() {
-	// PORTE |= (1 << PE0); //Enable pullup
+	PORTE |= (1 << PE0); //Enable pullup
 	//GICR |= (1 << INTF2);
 	//sei();
 }
@@ -19,24 +20,22 @@ JOYSTICK_control JOYSTICK_get_direction() {
 	uint8_t y_pos = ADC_read(JOY_Y);
 	//printf("x: %d , y: %d \n",x_pos,y_pos);
 	
-	if (x_pos < 55) {
+	if (x_pos < 70) {
 		return LEFT;
 	}
 	if (x_pos > 200) {
 		return RIGHT;
 	}
-	if (y_pos < 55) {
-		return DOWN;
-	}
-	if (y_pos > 200) {
+	if (y_pos < 90) {
 		return UP;
 	}
-	/*
-	if (!((1 << PE0) & PINE)) {
+	if (y_pos > 200) {
+		return DOWN;
+	}
+	/*if (!((1 << PE0) & PINE)) {
 		//GIFR |= (1 << INTF2);
 		return BTN_DOWN;
-	}
-	*/
+	}*/
 	return NEUTRAL;
 }
 

@@ -17,6 +17,8 @@
 #include "uart.h"
 #include "oled.h"
 #include "menu.h"
+#include "adc.h"
+#include "joystick.h"
 
 int main(void)
 {
@@ -24,10 +26,13 @@ int main(void)
 	SRAM_init();
 	OLED_init();
 	MENU_draw();
-	//SRAM_test();
+	SRAM_test();
+	JOYSTICK_init();
 	
 	for(;;) {
 		MENU_root();
+		//uint8_t result = ADC_read(JOY_X);
+		//printf("value: %d \n",result);
 		_delay_ms(100);
     }
 }
