@@ -25,7 +25,7 @@ int main(void)
 	usart_setup();
 	SRAM_init();
 	OLED_init();
-	MENU_draw();
+	MENU_draw_menu();
 	SRAM_test();
 	JOYSTICK_init();
 	SLIDER_init();

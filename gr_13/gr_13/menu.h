@@ -14,12 +14,21 @@ typedef enum {
 	PLAY,
 	OPTIONS,
 	INFO,
-	END
+	MENU
 } MENU_options;
 
+/*typedef enum {
+	M_MENU,
+	M_PLAY,
+	M_OPTIONS,
+	M_INFO
+} MENU_states;*/
 
 void MENU_root();
+void MENU_draw_menu();
 void MENU_draw();
 void MENU_select(MENU_options option);
-
+void MENU_draw_play();
+void MENU_draw_options();
+void MENU_draw_info();
 #endif
