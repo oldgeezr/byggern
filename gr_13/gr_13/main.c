@@ -28,11 +28,13 @@ int main(void)
 	MENU_draw();
 	SRAM_test();
 	JOYSTICK_init();
+	SLIDER_init();
 	
 	for(;;) {
 		MENU_root();
-		//uint8_t result = ADC_read(JOY_X);
-		//printf("value: %d \n",result);
+		// SLIDER_get_position();
+		// int8_t result = JOYSTICK_get_direction();
+		// printf("value: %d \n",result);
 		_delay_ms(100);
     }
 }

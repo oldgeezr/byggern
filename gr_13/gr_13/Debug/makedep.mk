@@ -4,9 +4,11 @@
 
 adc.c
 
-gr_13.c
+main.c
 
 joystick.c
+
+menu.c
 
 oled.c
 

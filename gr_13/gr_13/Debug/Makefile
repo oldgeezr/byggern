@@ -37,8 +37,9 @@ SUBDIRS :=
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS +=  \
 ../adc.c \
-../gr_13.c \
+../main.c \
 ../joystick.c \
+../menu.c \
 ../oled.c \
 ../sram.c \
 ../uart.c
@@ -52,32 +53,36 @@ ASM_SRCS +=
 
 OBJS +=  \
 adc.o \
-gr_13.o \
+main.o \
 joystick.o \
+menu.o \
 oled.o \
 sram.o \
 uart.o
 
 OBJS_AS_ARGS +=  \
 adc.o \
-gr_13.o \
+main.o \
 joystick.o \
+menu.o \
 oled.o \
 sram.o \
 uart.o
 
 C_DEPS +=  \
 adc.d \
-gr_13.d \
+main.d \
 joystick.d \
+menu.d \
 oled.d \
 sram.d \
 uart.d
 
 C_DEPS_AS_ARGS +=  \
 adc.d \
-gr_13.d \
+main.d \
 joystick.d \
+menu.d \
 oled.d \
 sram.d \
 uart.d
@@ -93,6 +98,8 @@ OUTPUT_FILE_DEP:= ./makedep.mk
 LIB_DEP+= 
 
 # AVR32/GNU C Compiler
+
+
 
 
 
