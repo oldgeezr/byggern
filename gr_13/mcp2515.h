@@ -1,5 +1,5 @@
 /*
- * mcp2515.h
+ * MCP2515.h
  *
  * Created: 30.09.2014 13:03:41
  *  Author: erlenhes
@@ -10,17 +10,18 @@
 
 #include <stdint.h>
 
-uint8_t mcp2515_read(uint8_t command, uint8_t address);
-void mcp2515_write(char data);
-void mcp2515_reset();
-uint8_t mcp2515_init(void);
+uint8_t MCP2515_read(uint8_t address);
+void MCP2515_write(uint8_t address, uint8_t data); 
+uint8_t MCP2515_read_rx_buffer(uint8_t instruction); 
+void MCP2515_reset(void);
+uint8_t MCP2515_read_status(void); 
+uint8_t MCP2515_rx_status(void);
+void MCP2515_bit_modify(uint8_t address, uint8_t mask_byte, uint8_t data); 
+uint8_t MCP2515_init(void);
 
-//void mcp2515_request_to_send();
-//void mcp2515_bit_modify();
-//void mcp2515_read_status();
 
 /*
-mcp2515.h
+MCP2515.h
 
 This file contains constants that are specific to the MCP2515.
 

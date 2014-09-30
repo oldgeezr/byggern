@@ -31,14 +31,14 @@ void MENU_root() {
 		option = (option + 1) % (N_OPTIONS);
 		MENU_select(option);
 		OLED_scroll_left(previous_option+3, previous_option+3);
-		_delay_ms(500);
+		_delay_ms(250);
 	}
 	if (direction == DOWN) {
 		previous_option = option;
 		option = ((option - 1) + N_OPTIONS) % N_OPTIONS;
 		MENU_select(option);
 		OLED_scroll_left(previous_option+3, previous_option+3);
-		_delay_ms(500);
+		_delay_ms(250);
 	}
 	if (direction == RIGHT) {
 		state = option;

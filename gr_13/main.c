@@ -19,8 +19,7 @@
 #include "menu.h"
 #include "adc.h"
 #include "joystick.h"
-#include "spi.h"
-#include "mcp2515.h"
+#include "MCP2515.h"
 
 int main(void)
 {
@@ -28,23 +27,25 @@ int main(void)
 	SRAM_init();
 	OLED_init();
 	MENU_draw_menu();
-	SRAM_test();
+	//SRAM_test();
 	JOYSTICK_init();
 	SLIDER_init();
-	SPI_master_init();
 	
-	//PORTB = ~(1 << PB4); //Pull SS low
+	MCP2515_init();
 	
 	for(;;) {
 		
-		//mcp2515_write(MCP_RX_STATUS);
-		//mcp2515_read(0x00);
-		
 		MENU_root();
-		//SPI_master_transmit(MCP_RX_STATUS);
+		
+		uint8_t result;
+		//result = MCP2515_read_status();
+		result = MCP2515_read(MCP_CNF3);
+		printf("from SPI: %d \n",result);
+		
+		
 		 //SLIDER_get_position();
 		 //int8_t result = JOYSTICK_get_direction();
 		 //printf("value: %d \n",result);
-		//_delay_ms(100);
+		_delay_ms(100);
     }
 }

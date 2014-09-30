@@ -8,9 +8,11 @@
 #ifndef _SPI_H
 #define _SPI_H
 
-void SPI_master_init(void);
-void SPI_master_transmit(char data);
+void SPI_init(void);
+void SPI_write(char data);
 void SPI_slave_init(void);
-char SPI_slave_receive(void);
+char SPI_read(void);
+void SPI_select(void);
+void SPI_deselect(void);
 
 #endif

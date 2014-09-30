@@ -8,14 +8,14 @@
 #include "spi.h"
 #include <avr/io.h>
 
-void SPI_master_init(void) {
+void SPI_init(void) {
 	//Set MOSI and SCK as output, all others input
 	DDRB |= (1 << PB5) | (1 << PB7) | (1 << PB4);
 	//Enable SPI, Master
 	SPCR |= (1 << SPE) | (1 << MSTR);
-	SPSR |= (1 << SPI2X);
+	//SPSR |= (1 << SPI2X);
 }
-void SPI_master_transmit(char data) {
+void SPI_write(char data) {
 	SPDR = data;
 	while(!(SPSR & (1 << SPIF)));
 }
@@ -26,7 +26,16 @@ void SPI_slave_init(void) {
 	//Enable SPI
 	SPCR = (1 << SPE);
 }
-char SPI_slave_receive(void) {
+char SPI_read(void) {
+	SPI_write(0x00); //Send dummy byte to receive
 	while(!(SPSR & (1 << SPIF)));
 	return SPDR;
+}
+
+void SPI_select(void) {
+	PORTB &= ~(1 << PB4);
+}
+
+void SPI_deselect(void) {
+	PORTB |= (1 << PB4);
 }

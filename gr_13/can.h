@@ -5,11 +5,10 @@
  *  Author: erlenhes
  */ 
 
-
-/* Names
-
 #ifndef _MCP2515_H
 #define _MCP2515_H
+
+#include <stdint.h>
 
 typedef struct{
 	unsigned int id;
@@ -17,12 +16,11 @@ typedef struct{
 	uint8_t data[8];
 } can_message_t;
 
-void can_init();
-void can_message_send();
-void can_error();
-void can_transmit_complete();
-void can_data_receive();
-void can_int_vect();
+void CAN_msg_send(can_message_t *msg);
+void CAN_init();
+void CAN_error();
+void CAN_transmit_complete();
+void CAN_data_receive();
+void CAN_int_vect();
 
 #endif
-*/
