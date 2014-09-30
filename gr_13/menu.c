@@ -21,8 +21,6 @@ MENU_options state = MENU;
 
 void MENU_root() {
 	
-	_delay_ms(100);
-	
 	static MENU_options option = PLAY;	
 	static MENU_options previous_option = PLAY;	
 	
