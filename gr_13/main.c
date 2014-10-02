@@ -35,13 +35,15 @@ int main(void)
 	
 	for(;;) {
 		
-		MENU_root();
+		//MENU_root();
 		
-		uint8_t result;
+		//uint8_t result;
 		//result = MCP2515_read_status();
-		result = MCP2515_read(MCP_CNF3);
-		printf("from SPI: %d \n",result);
+		//result = MCP2515_read(MCP_CNF3);
+		//printf("from SPI: %d \n",result);
 		
+		MCP2515_write(0x36,0x61);
+
 		
 		 //SLIDER_get_position();
 		 //int8_t result = JOYSTICK_get_direction();

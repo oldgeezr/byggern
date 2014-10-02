@@ -25,7 +25,7 @@ uint8_t MCP2515_init(void)
 		printf("configured %d \n", value);
 	}
 	
-	MCP2515_bit_modify(MCP_CANSTAT, MODE_MASK, MODE_LOOPBACK);
+	MCP2515_bit_modify(MCP_CANCTRL, MODE_MASK, MODE_LOOPBACK);
 
 	return 0;
 }
