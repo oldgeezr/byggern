@@ -12,6 +12,7 @@
 #include <util/delay.h>
 #include <avr/io.h>
 #include <stdio.h>
+#include <avr/interrupt.h>
 
 #include "sram.h"
 #include "uart.h"
@@ -19,35 +20,41 @@
 #include "menu.h"
 #include "adc.h"
 #include "joystick.h"
-#include "MCP2515.h"
+#include "can.h"
 
 int main(void)
 {
 	usart_setup();
-	SRAM_init();
-	OLED_init();
-	MENU_draw_menu();
+	//SRAM_init();
+	//OLED_init();
+	//MENU_draw_menu();
 	//SRAM_test();
-	JOYSTICK_init();
-	SLIDER_init();
+	//JOYSTICK_init();
+	//SLIDER_init();
+	CAN_init();
 	
-	MCP2515_init();
+	GICR |= (1 << INT2);
+	sei();
 	
 	for(;;) {
+		can_message_t msg;
+		can_message_t received_msg;
 		
-		//MENU_root();
+		msg.id = 155;
+		msg.length = 3;
+		msg.data[0] = 0x06;
+		msg.data[1] = 0x06;
+		msg.data[2] = 0x06;
 		
-		//uint8_t result;
-		//result = MCP2515_read_status();
-		//result = MCP2515_read(MCP_CNF3);
-		//printf("from SPI: %d \n",result);
+		printf("Can msg sent: %d , %d , %d , %d , %d \n",msg.id, msg.length, msg.data[0],msg.data[1],msg.data[2]);
 		
-		MCP2515_write(0x36,0x61);
-
+		CAN_msg_send(&msg);
 		
-		 //SLIDER_get_position();
-		 //int8_t result = JOYSTICK_get_direction();
-		 //printf("value: %d \n",result);
-		_delay_ms(100);
+		received_msg = CAN_data_receive();
+		
+		printf("Can msg received: %d , %d , %d , %d , %d \n",received_msg.id, received_msg.length, received_msg.data[0],received_msg.data[1],received_msg.data[2]);
+		
+		_delay_ms(500);
+		
     }
 }

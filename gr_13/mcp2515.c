@@ -8,13 +8,18 @@
 #include "MCP2515.h"
 #include "spi.h"
 
+#define F_CPU 4915200
+
 #include <avr/io.h>
+#include <util/delay.h>
+
 
 uint8_t MCP2515_init(void)
 {
 	uint8_t value;
 	SPI_init();
 	MCP2515_reset();
+	_delay_ms(1);
 	
 	//Self-test
 	value = MCP2515_read(MCP_CANSTAT);
@@ -25,8 +30,12 @@ uint8_t MCP2515_init(void)
 		printf("configured %d \n", value);
 	}
 	
+	MCP2515_bit_modify(MCP_RXB0CTRL, 0b01100100, 0xFF);
+	
 	MCP2515_bit_modify(MCP_CANCTRL, MODE_MASK, MODE_LOOPBACK);
-
+	
+	MCP2515_bit_modify(MCP_CANINTE, 0x01, 1); //Enable receive interrupt
+	
 	return 0;
 }
 
@@ -67,6 +76,7 @@ uint8_t MCP2515_read_rx_buffer(uint8_t instruction) {
 	SPI_write(instruction);
 	result = SPI_read();
 	SPI_deselect();
+	printf("I SUX DIX!");
 	return result;
 }
 
@@ -112,11 +122,21 @@ uint8_t MCP2515_rx_status(void) {
 	return result;
 }
 
+uint8_t MCP2515_read_RX0(void) {
+	uint8_t result;
+	SPI_select();
+	SPI_write(MCP_READ_RX0);
+	result = SPI_read();
+	SPI_deselect();
+	return result;
+}
+
 //REGISTER OP/////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
 void MCP2515_bit_modify(uint8_t address, uint8_t mask_byte, uint8_t data) {
 	SPI_select();
+	SPI_write(MCP_BITMOD);
 	SPI_write(address);
 	SPI_write(mask_byte);
 	SPI_write(data);

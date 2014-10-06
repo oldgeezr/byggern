@@ -11,8 +11,9 @@
 void SPI_init(void) {
 	//Set MOSI and SCK as output, all others input
 	DDRB |= (1 << PB5) | (1 << PB7) | (1 << PB4);
+	DDRB &= ~(1 << PB6);
 	//Enable SPI, Master
-	SPCR |= (1 << SPE) | (1 << MSTR);
+	SPCR |= (1 << SPE) | (1 << MSTR) | (1 << SPR0);
 	//SPSR |= (1 << SPI2X);
 }
 void SPI_write(char data) {
@@ -27,7 +28,7 @@ void SPI_slave_init(void) {
 	SPCR = (1 << SPE);
 }
 char SPI_read(void) {
-	SPI_write(0x00); //Send dummy byte to receive
+	SPI_write(0); //Send dummy byte to receive
 	while(!(SPSR & (1 << SPIF)));
 	return SPDR;
 }

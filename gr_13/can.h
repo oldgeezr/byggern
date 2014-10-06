@@ -5,8 +5,8 @@
  *  Author: erlenhes
  */ 
 
-#ifndef _MCP2515_H
-#define _MCP2515_H
+#ifndef _CAN_H
+#define _CAN_H
 
 #include <stdint.h>
 
@@ -18,9 +18,9 @@ typedef struct{
 
 void CAN_msg_send(can_message_t *msg);
 void CAN_init();
-void CAN_error();
-void CAN_transmit_complete();
-void CAN_data_receive();
+uint8_t CAN_error();
+uint8_t CAN_transmit_complete();
+can_message_t CAN_data_receive();
 void CAN_int_vect();
 
 #endif
