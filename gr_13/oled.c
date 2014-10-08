@@ -86,7 +86,12 @@ void OLED_write_char(uint8_t character) {
 	for (i = 0; i < 8; i++) {
 		*data = pgm_read_byte(&font8[character-32][i]);
 	}
-	
+}
+
+void OLED_write_string(char *str) {
+	while(*str) {
+		OLED_write_char(*str++);
+	}
 }
 
 void OLED_set_pages(uint8_t y0, uint8_t y1) {
@@ -131,10 +136,4 @@ void OLED_scroll_left(uint8_t page_start,uint8_t page_stop) {
 	*command = 0x2F; //Start scroll
 	_delay_ms(100);
 	*command = 0x2E; //Deactivate scroll
-}
-
-void OLED_write_string(char *str) {
-	while(*str) {
-		OLED_write_char(*str++);
-	}
 }

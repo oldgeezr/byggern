@@ -76,7 +76,6 @@ uint8_t MCP2515_read_rx_buffer(uint8_t instruction) {
 	SPI_write(instruction);
 	result = SPI_read();
 	SPI_deselect();
-	printf("I SUX DIX!");
 	return result;
 }
 

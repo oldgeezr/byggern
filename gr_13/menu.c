@@ -19,7 +19,7 @@ const uint8_t N_OPTIONS = MENU - PLAY;
 
 MENU_options state = MENU;
 
-void MENU_root() {
+void MENU_root(void) {
 	
 	static MENU_options option = PLAY;	
 	static MENU_options previous_option = PLAY;	
@@ -69,7 +69,7 @@ void MENU_select(MENU_options option) {
 	}
 }
 
-void MENU_draw_menu() {
+void MENU_draw_menu(void) {
 	
 	uint8_t align = 36;
 	
@@ -94,7 +94,7 @@ void MENU_draw_menu() {
 	
 }
 
-void MENU_draw_play() {
+void MENU_draw_play(void) {
 	
 	OLED_clear();
 	
@@ -103,7 +103,7 @@ void MENU_draw_play() {
 	OLED_write_string("PLAYING...");
 }
 
-void MENU_draw_options() {
+void MENU_draw_options(void) {
 	
 	OLED_clear();
 	
@@ -118,7 +118,7 @@ void MENU_draw_options() {
 	OLED_write_string("moment");
 }
 
-void MENU_draw_info() {
+void MENU_draw_info(void) {
 	
 	uint8_t align = 36;
 	
@@ -135,7 +135,7 @@ void MENU_draw_info() {
 	OLED_write_string("Erlend H");
 }
 
-void MENU_draw() {
+void MENU_draw(void) {
 	
 	switch (state) {
 		case MENU:

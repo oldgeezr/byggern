@@ -18,8 +18,8 @@ uint8_t rx_flag = 0;
 
 #include <avr/interrupt.h>
 
-void CAN_msg_send(can_message_t *msg) {
-	if (CAN_transmit_complete()) {
+CAN_status_flag CAN_msg_send(can_message_t *msg) {
+	if (CAN_transmit_complete() == 1) {
 		
 		MCP2515_write(MCP_TXB0SIDH,(msg->id >> 3)); //Identifier (HIGH-bits)
 		MCP2515_write(MCP_TXB0SIDL,(msg->id) << 5); //Identifier (LOW-bits)
@@ -30,26 +30,33 @@ void CAN_msg_send(can_message_t *msg) {
 		}
 		
 		MCP2515_rts(); //Request-to-send
+		
+	} else {
+		if (CAN_error() == MSG_LOST || CAN_error() == TX_ERROR) {
+			return MSG_ABORT;
+		}
 	}
+	return MSG_SENT;
 }
 
 void CAN_init(void) {
 	MCP2515_init();
 }
 
-uint8_t CAN_error() {
-	uint8_t error = MCP2515_read(MCP_TXB0CTRL);
+CAN_status_flag CAN_error(void) {
+	uint8_t status = MCP2515_read(MCP_TXB0CTRL);
 	
-	if (error & 0x05) {
-		return 1;
-	} else if (error & 0x05) {
-		return 2;
+	if (status & (1 << MCP_MLOA)) {
+		return MSG_LOST;
+	} else if (status & (1 << MCP_TXERR)) {
+		return TX_ERROR;
 	}
-	return 0;
+	return NO_ERROR;
 }
 
 uint8_t CAN_transmit_complete() {
-	if (MCP2515_read(MCP_TXB0CTRL) & 0x04) {
+	uint8_t status = MCP2515_read(MCP_TXB0CTRL);
+	if (status & (1 << MCP_TXREQ)) {
 		return 0;
 	} else {
 		return 1;

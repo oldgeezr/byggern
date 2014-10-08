@@ -17,18 +17,11 @@ typedef enum {
 	MENU
 } MENU_options;
 
-/*typedef enum {
-	M_MENU,
-	M_PLAY,
-	M_OPTIONS,
-	M_INFO
-} MENU_states;*/
-
-void MENU_root();
-void MENU_draw_menu();
-void MENU_draw();
+void MENU_root(void);
+void MENU_draw_menu(void);
+void MENU_draw(void);
 void MENU_select(MENU_options option);
-void MENU_draw_play();
-void MENU_draw_options();
-void MENU_draw_info();
+void MENU_draw_play(void);
+void MENU_draw_options(void);
+void MENU_draw_info(void);
 #endif

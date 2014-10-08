@@ -25,12 +25,12 @@
 int main(void)
 {
 	usart_setup();
-	//SRAM_init();
-	//OLED_init();
-	//MENU_draw_menu();
+	SRAM_init();
+	OLED_init();
+	MENU_draw_menu();
 	//SRAM_test();
-	//JOYSTICK_init();
-	//SLIDER_init();
+	JOYSTICK_init();
+	SLIDER_init();
 	CAN_init();
 	
 	GICR |= (1 << INT2);

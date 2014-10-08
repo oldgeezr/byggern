@@ -12,9 +12,6 @@
 
 FILE *uart;
 
-int usart_putchar(char c, FILE *f);
-int usart_getchar(FILE *f);
-
-void usart_setup();
+void usart_setup(void);
 
 #endif

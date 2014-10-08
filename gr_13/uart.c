@@ -8,8 +8,18 @@
 #include "uart.h"
 #include <avr/io.h>
 
-void usart_setup() 
-{
+static inline int usart_putchar(char c, FILE *f) {
+	while (!(UCSR0A & (1 << UDRE0)));
+	UDR0 = c;
+	return 0;
+}
+
+static inline int usart_getchar(FILE *f) {
+	while (!(UCSR0A & (1 << RXC0)));
+	return UDR0;
+}
+
+void usart_setup(void) {
 	//Enable receive and transmit
 	UCSR0B |= (1 << RXEN0) | (1 << TXEN0);
 	UCSR0C |= (1 << UCSZ01) | (1 << UCSZ00); //8bit. no-parity, 1 stop bit
@@ -18,17 +28,4 @@ void usart_setup()
 	UBRR0L = 31;
 	
 	uart = fdevopen(&usart_putchar, &usart_getchar);
-}
-
-int usart_putchar(char c, FILE *f) 
-{
-	while (!(UCSR0A & (1 << UDRE0)));
-	UDR0 = c;
-	return 0;
-}
-
-int usart_getchar(FILE *f) 
-{
-	while (!(UCSR0A & (1 << RXC0)));
-	return UDR0;
 }

@@ -13,8 +13,7 @@
 
 #include <util/delay.h>
 
-uint8_t ADC_read(ADC_channel ch)
-{
+uint8_t ADC_read(ADC_channel ch) {
 	volatile char *adc = (char *) 0x1400;
 	adc[1] = ch;
 	_delay_us(40);
