@@ -37,24 +37,16 @@ int main(void)
 	sei();
 	
 	for(;;) {
-		can_message_t msg;
-		can_message_t received_msg;
 		
-		msg.id = 155;
-		msg.length = 3;
-		msg.data[0] = 0x06;
-		msg.data[1] = 0x06;
-		msg.data[2] = 0x06;
+		//MENU_root();
 		
-		printf("Can msg sent: %d , %d , %d , %d , %d \n",msg.id, msg.length, msg.data[0],msg.data[1],msg.data[2]);
+		//SLIDER_get_position();
 		
-		CAN_msg_send(&msg);
+		CAN_test_msg_normal_mode();
+		//CAN_test_receive();
+		//CAN_test_msg_normal_mode();
 		
-		received_msg = CAN_data_receive();
-		
-		printf("Can msg received: %d , %d , %d , %d , %d \n",received_msg.id, received_msg.length, received_msg.data[0],received_msg.data[1],received_msg.data[2]);
-		
-		_delay_ms(500);
+		_delay_ms(1000);
 		
     }
 }

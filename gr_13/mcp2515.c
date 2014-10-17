@@ -13,7 +13,6 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
-
 uint8_t MCP2515_init(void)
 {
 	uint8_t value;
@@ -30,9 +29,16 @@ uint8_t MCP2515_init(void)
 		printf("configured %d \n", value);
 	}
 	
+	//Configure filters
 	MCP2515_bit_modify(MCP_RXB0CTRL, 0b01100100, 0xFF);
 	
-	MCP2515_bit_modify(MCP_CANCTRL, MODE_MASK, MODE_LOOPBACK);
+	//Configure baudrate to 500kbps
+	MCP2515_write(MCP_CNF1,0x00);
+	MCP2515_write(MCP_CNF2,0xF0);
+	MCP2515_write(MCP_CNF3,0x86);
+	
+	MCP2515_bit_modify(MCP_CANCTRL, MODE_MASK, MODE_NORMAL);
+	//MCP2515_bit_modify(MCP_CANCTRL, MODE_MASK, MODE_LOOPBACK);
 	
 	MCP2515_bit_modify(MCP_CANINTE, 0x01, 1); //Enable receive interrupt
 	

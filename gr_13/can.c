@@ -7,6 +7,7 @@
 
 #include "can.h"
 #include "mcp2515.h"
+#include "joystick.h"
 
 #ifndef F_CPU
 #define F_CPU 4915200
@@ -80,8 +81,69 @@ can_message_t CAN_data_receive() {
 	return msg;
 }
 
-ISR(INT2_vect) {
+void CAN_test_loopback_msg(void) {
+	can_message_t msg;
+	can_message_t received_msg;
+	SLIDER_position position;
+	
+	position = SLIDER_get_position();
+	
+	msg.id = 155;
+	msg.length = 2;
+	msg.data[0] = position.left_pos;
+	msg.data[1] = position.right_pos;
+	
+	//printf("Can msg sent: %d , %d , %d , %d , %d \n",msg.id, msg.length, msg.data[0],msg.data[1],msg.data[2]);
+	
+	CAN_msg_send(&msg);
+	
 	_delay_ms(10);
+	
+	received_msg = CAN_data_receive();
+	printf("CAN RX - ID: %d - LENGTH: %d - DATA: ", received_msg.id, received_msg.length);
+	uint8_t i;
+	for (i = 0; i < received_msg.length; i++)
+	{
+		printf("%d ,", received_msg.data[i]);
+	}
+	printf("\n");
+}
+
+void CAN_test_receive(void) {
+	can_message_t received_msg;
+	
+	received_msg = CAN_data_receive();
+	printf("CAN RX - ID: %d - LENGTH: %d - DATA: ", received_msg.id, received_msg.length);
+	uint8_t i;
+	for (i = 0; i < received_msg.length; i++)
+	{
+		printf("%d ,", received_msg.data[i]);
+	}
+	printf("\n");
+}
+
+void CAN_test_msg_normal_mode(void) {
+	can_message_t msg;
+	can_message_t received_msg;
+	SLIDER_position position;
+	
+	position = SLIDER_get_position();
+	
+	msg.id = 155;
+	msg.length = 2;
+	//msg.data[0] = position.left_pos;
+	//msg.data[1] = position.right_pos;
+	msg.data[0] = 0x01;
+	msg.data[1] = 0x66;
+	
+	//printf("Can msg sent: %d , %d , %d , %d , %d \n",msg.id, msg.length, msg.data[0],msg.data[1],msg.data[2]);
+	
+	CAN_msg_send(&msg);
+	
+	_delay_ms(500);
+}
+
+ISR(INT2_vect) {
 	MCP2515_bit_modify(MCP_CANINTF,0x01,0); //Clear flag
 	rx_flag = 1; 
 }
