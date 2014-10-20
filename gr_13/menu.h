@@ -15,12 +15,12 @@ typedef enum {
 	OPTIONS,
 	INFO,
 	MENU
-} MENU_options;
+} menu_options;
 
 void MENU_root(void);
 void MENU_draw_menu(void);
 void MENU_draw(void);
-void MENU_select(MENU_options option);
+void MENU_select(menu_options option);
 void MENU_draw_play(void);
 void MENU_draw_options(void);
 void MENU_draw_info(void);

@@ -111,8 +111,7 @@ void MCP2515_load_tx_buffer(uint8_t data) {
 	SPI_deselect();
 }
 
-//Request to send (RTS)
-void MCP2515_rts() {
+void MCP2515_rts(void) { //Request to send (RTS)
 	SPI_select();
 	SPI_write(MCP_RTS_TX0);
 	SPI_deselect();

@@ -33,7 +33,7 @@ int main(void)
 	SLIDER_init();
 	CAN_init();
 	
-	GICR |= (1 << INT2);
+	GICR |= (1 << INT2); //For CAN rxbuf
 	sei();
 	
 	for(;;) {
@@ -45,8 +45,7 @@ int main(void)
 		CAN_test_msg_normal_mode();
 		//CAN_test_receive();
 		//CAN_test_msg_normal_mode();
-		
-		_delay_ms(1000);
-		
+	
+		_delay_ms(10);
     }
 }

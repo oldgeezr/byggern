@@ -7,6 +7,7 @@
 
 #include "joystick.h"
 #include "adc.h"
+#include "uart.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
@@ -25,7 +26,7 @@ void JOYSTICK_calibrate() {
 	// printf("midx: %d, midy: %d\n", mid_x, mid_y); // Typical 151, 151
 }
 
-int8_t JOYSTICK_get_position(JOYSTICK_control axis) {
+int8_t JOYSTICK_get_position(joystick_control axis) {
 	
 	uint8_t mid;
 	
@@ -49,7 +50,7 @@ int8_t JOYSTICK_get_position(JOYSTICK_control axis) {
 	return 0;
 }
 
-JOYSTICK_control JOYSTICK_get_direction() {
+joystick_control JOYSTICK_get_direction() {
 	
 	/*
 	* NOTE! When getting the direction of the y-axis the program 
@@ -92,9 +93,9 @@ void SLIDER_init() {
 	sei();
 }
 
-SLIDER_position SLIDER_get_position() {
+slider_position SLIDER_get_position() {
 	
-	SLIDER_position position;
+	slider_position position;
 
 	uint8_t l_pos, r_pos;
 	

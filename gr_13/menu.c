@@ -17,14 +17,14 @@ const uint8_t N_OPTIONS = MENU - PLAY;
 #include <stdlib.h>
 #include <util/delay.h>
 
-MENU_options state = MENU;
+menu_options state = MENU;
 
 void MENU_root(void) {
 	
-	static MENU_options option = PLAY;	
-	static MENU_options previous_option = PLAY;	
+	static menu_options option = PLAY;	
+	static menu_options previous_option = PLAY;	
 	
-	JOYSTICK_control direction = JOYSTICK_get_direction();
+	joystick_control direction = JOYSTICK_get_direction();
 	
 	if (direction == UP) {
 		previous_option = option;
@@ -52,7 +52,7 @@ void MENU_root(void) {
 	}
 }
 
-void MENU_select(MENU_options option) {
+void MENU_select(menu_options option) {
 	
 	switch(option) {
 		case PLAY:

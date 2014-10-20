@@ -8,18 +8,22 @@
 #include "can.h"
 #include "mcp2515.h"
 #include "joystick.h"
+#include "uart.h"
 
 #ifndef F_CPU
 #define F_CPU 4915200
 #endif
 
 #include <util/delay.h>
+#include <avr/interrupt.h>
 
 uint8_t rx_flag = 0;
 
-#include <avr/interrupt.h>
+void CAN_init(void) {
+	MCP2515_init();
+}
 
-CAN_status_flag CAN_msg_send(can_message_t *msg) {
+can_status_flag CAN_msg_send(can_message_t *msg) {
 	if (CAN_transmit_complete() == 1) {
 		
 		MCP2515_write(MCP_TXB0SIDH,(msg->id >> 3)); //Identifier (HIGH-bits)
@@ -40,11 +44,33 @@ CAN_status_flag CAN_msg_send(can_message_t *msg) {
 	return MSG_SENT;
 }
 
-void CAN_init(void) {
-	MCP2515_init();
+can_message_t CAN_msg_receive(void) {
+	can_message_t msg;
+	
+	if (rx_flag == 1) {
+		msg.id = (MCP2515_read(MCP_RXB0SIDH) << 3) | (MCP2515_read(MCP_RXB0SIDL) >> 5); //Get ID
+		msg.length = (0x0F) & (MCP2515_read(MCP_RXB0DLC)); //Get data length
+		
+		for (uint8_t i = 0; i < msg.length; i++) {
+			msg.data[i] = MCP2515_read(MCP_RXB0D0 + i); //Get data
+		}
+		rx_flag = 0;
+	}
+	
+	return msg;
 }
 
-CAN_status_flag CAN_error(void) {
+uint8_t CAN_transmit_complete(void) {
+	uint8_t status = MCP2515_read(MCP_TXB0CTRL);
+	
+	if (status & (1 << MCP_TXREQ)) {
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
+can_status_flag CAN_error(void) {
 	uint8_t status = MCP2515_read(MCP_TXB0CTRL);
 	
 	if (status & (1 << MCP_MLOA)) {
@@ -55,36 +81,13 @@ CAN_status_flag CAN_error(void) {
 	return NO_ERROR;
 }
 
-uint8_t CAN_transmit_complete() {
-	uint8_t status = MCP2515_read(MCP_TXB0CTRL);
-	if (status & (1 << MCP_TXREQ)) {
-		return 0;
-	} else {
-		return 1;
-	}
-}
-
-can_message_t CAN_data_receive() {
-	can_message_t msg;
-	
-	if (rx_flag == 1) {
-		msg.id = (MCP2515_read(MCP_RXB0SIDH) << 3) | (MCP2515_read(MCP_RXB0SIDL) >> 5); //Get ID
-		msg.length = (0x0F) & (MCP2515_read(MCP_RXB0DLC)); //Get data length
-		
-		for (uint8_t i = 0; i < msg.length; i++) {
-			msg.data[i] = MCP2515_read(MCP_RXB0D0 + i); //Get data
-		}
-		
-		rx_flag = 0;
-	}
-	
-	return msg;
-}
+//TESTING//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 
 void CAN_test_loopback_msg(void) {
 	can_message_t msg;
 	can_message_t received_msg;
-	SLIDER_position position;
+	slider_position position;
 	
 	position = SLIDER_get_position();
 	
@@ -93,13 +96,11 @@ void CAN_test_loopback_msg(void) {
 	msg.data[0] = position.left_pos;
 	msg.data[1] = position.right_pos;
 	
-	//printf("Can msg sent: %d , %d , %d , %d , %d \n",msg.id, msg.length, msg.data[0],msg.data[1],msg.data[2]);
-	
 	CAN_msg_send(&msg);
 	
 	_delay_ms(10);
 	
-	received_msg = CAN_data_receive();
+	received_msg = CAN_msg_receive();
 	printf("CAN RX - ID: %d - LENGTH: %d - DATA: ", received_msg.id, received_msg.length);
 	uint8_t i;
 	for (i = 0; i < received_msg.length; i++)
@@ -112,7 +113,7 @@ void CAN_test_loopback_msg(void) {
 void CAN_test_receive(void) {
 	can_message_t received_msg;
 	
-	received_msg = CAN_data_receive();
+	received_msg = CAN_msg_receive();
 	printf("CAN RX - ID: %d - LENGTH: %d - DATA: ", received_msg.id, received_msg.length);
 	uint8_t i;
 	for (i = 0; i < received_msg.length; i++)
@@ -124,24 +125,27 @@ void CAN_test_receive(void) {
 
 void CAN_test_msg_normal_mode(void) {
 	can_message_t msg;
-	can_message_t received_msg;
-	SLIDER_position position;
 	
-	position = SLIDER_get_position();
+	joystick_control joy_control;
+	
+	//SLIDER_position position;
+	//position = SLIDER_get_position();
+	//msg.data[0] = position.left_pos;
+	//msg.data[1] = position.right_pos;
+	
+	joy_control = JOYSTICK_get_direction();
 	
 	msg.id = 155;
 	msg.length = 2;
-	//msg.data[0] = position.left_pos;
-	//msg.data[1] = position.right_pos;
-	msg.data[0] = 0x01;
+	msg.data[0] = joy_control;
 	msg.data[1] = 0x66;
-	
-	//printf("Can msg sent: %d , %d , %d , %d , %d \n",msg.id, msg.length, msg.data[0],msg.data[1],msg.data[2]);
 	
 	CAN_msg_send(&msg);
 	
-	_delay_ms(500);
 }
+
+//ISR////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 
 ISR(INT2_vect) {
 	MCP2515_bit_modify(MCP_CANINTF,0x01,0); //Clear flag

@@ -27,13 +27,13 @@ typedef enum {
 	MSG_ABORT,
 	NO_ERROR,
 	MSG_SENT
-} CAN_status_flag;
+} can_status_flag;
 
 void CAN_init(void);
-CAN_status_flag CAN_msg_send(can_message_t *msg);
-CAN_status_flag CAN_error();
+can_status_flag CAN_msg_send(can_message_t *msg);
+can_status_flag CAN_error();
 uint8_t CAN_transmit_complete();
-can_message_t CAN_data_receive();
+can_message_t CAN_msg_receive();
 void CAN_test_loopback_msg(void);
 void CAN_test_msg_normal_mode(void);
 void CAN_test_receive(void);  

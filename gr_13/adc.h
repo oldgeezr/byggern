@@ -15,8 +15,8 @@ typedef enum {
 	JOY_Y = 5,
 	SLIDER_R = 6,
 	SLIDER_L = 7
-} ADC_channel;
+} adc_channel;
 
-uint8_t ADC_read(ADC_channel ch);
+uint8_t ADC_read(adc_channel ch);
 
 #endif
