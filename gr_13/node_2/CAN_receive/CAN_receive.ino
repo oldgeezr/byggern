@@ -2,10 +2,13 @@
 #include <mcp_can.h>
 #include <SPI.h>
 #include <Wire.h>
+#include <Servo.h>
 
 long unsigned int rxId;
 unsigned char len = 0;
 unsigned char rxBuf[8];
+
+Servo myservo; 
 
 MCP_CAN CAN0(53); // Set CS to pin 10
 
@@ -50,6 +53,11 @@ void setup() {
   pinMode(A13, INPUT);
   pinMode(A14, INPUT);
   pinMode(A15, INPUT);
+  
+  ///Servo///////////////////////////////////////////////////////////////////
+  myservo.attach(4);
+  
+  pinMode(A7,INPUT);
   
 }
 
@@ -124,12 +132,12 @@ void carriage_left() {
 
 void loop()
 {    
-    /*
+    
     if(!digitalRead(2))                         // If pin 2 is low, read receive buffer
     {
       CAN0.readMsgBuf(&len, rxBuf);              // Read data: len = data length, buf = data byte(s)
       rxId = CAN0.getCanId();                    // Get message ID
-      
+      /*
       Serial.print("ID: ");
       Serial.print(rxId, HEX);
       Serial.print("  Data: ");
@@ -141,8 +149,7 @@ void loop()
         Serial.print(rxBuf[i], HEX);
         Serial.print(" ");
       }
-      Serial.println(rxBuf[0]);
-   
+      */
       switch(rxBuf[0]) {
         case 'L': //left
           carriage_speed(110);
@@ -156,11 +163,20 @@ void loop()
           carriage_speed(0);
           break;
        }
+       uint8_t pos = 150-rxBuf[1];
+       if((pos > 50) && (pos < 140)) {
+         myservo.write(pos);
+         Serial.print(rxBuf[1]);
+         Serial.print("->");
+         Serial.println(pos);
+       }
     }
-    */
     
-    read_decoder();
-    delay(100);
+    uint8_t adc = analogRead(A7);
+    Serial.print("ADC:");
+    Serial.println(A7);
+    //read_decoder();
+    delay(10);
 }
 
 /*********************************************************************************************************
