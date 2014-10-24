@@ -5,11 +5,17 @@
  *  Author: chriram
  */ 
 
+#define F_CPU 4915200
+
 #include "joystick.h"
 #include "adc.h"
 #include "uart.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <util/delay.h>
+
+volatile uint8_t slider_btn_left;
+volatile uint8_t slider_btn_right;
 
 void JOYSTICK_init() {
 	PORTB |= (1 << PB0); //Enable pullup
@@ -93,7 +99,7 @@ void SLIDER_init() {
 	sei();
 }
 
-slider_position SLIDER_get_position() {
+slider_position SLIDER_get_position(void) {
 	
 	slider_position position;
 
@@ -106,17 +112,37 @@ slider_position SLIDER_get_position() {
 	position.left_pos = 100*l_pos/255;
 	position.right_pos = 100*r_pos/255;
 	
-	//printf("x: %d, y: %d\n", position.left_pos, position.right_pos);
+	printf("x: %d, y: %d\n", position.left_pos, position.right_pos);
 	
 	return position;
 }
 
+slider_btn_state SLIDER_get_btn_state(void) {
+	if (slider_btn_right && slider_btn_left) {
+		slider_btn_left = 0;
+		slider_btn_right = 0;
+		return SLIDER_BTN_BOTH;
+	} else if (slider_btn_left) {
+		slider_btn_left = 0;
+		slider_btn_right = 0;
+		return SLIDER_BTN_LEFT;
+	} else if (slider_btn_right) {
+		slider_btn_left = 0;
+		slider_btn_right = 0;
+		return SLIDER_BTN_RIGHT;
+	} else {
+		slider_btn_left = 0;
+		slider_btn_right = 0;
+		return SLIDER_BTN_NONE;
+	}
+}
+
 // Execute when Right button is pressed
 ISR (INT0_vect) {
-	printf("btnR\n");
+	slider_btn_right = 1;
 }
 
 // Execute when Left button is pressed
 ISR (INT1_vect) {
-	printf("btnL\n");
+	slider_btn_left = 1;
 }

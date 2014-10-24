@@ -3,12 +3,15 @@
 #include <SPI.h>
 #include <Wire.h>
 #include <Servo.h>
+#include <avr/interrupt.h>
 
 long unsigned int rxId;
 unsigned char len = 0;
 unsigned char rxBuf[8];
 
-Servo myservo; 
+Servo myservo;
+
+int x_axis;
 
 MCP_CAN CAN0(53); // Set CS to pin 10
 
@@ -20,17 +23,32 @@ MCP_CAN CAN0(53); // Set CS to pin 10
 
 void setup() {
   
+  /*===============USART=================*/
+  
   Serial.begin(9600);
   Serial.println("MCP2515 CAN Receive init...");
   
-  //CAN init////////////////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////////////////////////
+  /*==============INTERRUPTS==============*/
+  // initialize Timer1
+  noInterrupts(); // disable all interrupts
+  TCCR3A = 0;// set entire TCCR2A register to 0
+  TCCR3B = 0;// same for TCCR2B
+  TCNT3  = 0;//initialize counter value to 0
+  // set compare match register for 2khz increments
+  OCR3A = 124;// = (16*10^6) / (2000*64) - 1 (must be <256)
+  // turn on CTC mode
+  TCCR3A |= (1 << WGM31);
+  // Set CS01 and CS00 bits for 64 prescaler
+  TCCR3B |= (1 << CS01) | (1 << CS00);   
+  // enable timer compare interrupt
+  TIMSK3 |= (1 << OCIE3A);
+  interrupts(); // enable all interrupts
+  /*==============CAN INIT==============*/
   
   CAN0.begin(CAN_500KBPS);
   pinMode(2, INPUT); 
   
-  //Carriage control////////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////////////////////////
+  /*==============MOTORBOX==============*/
   
   pinMode(DIR, OUTPUT); //Direction
   pinMode(EN, OUTPUT); //Enable
@@ -38,8 +56,8 @@ void setup() {
   digitalWrite(EN,HIGH);
   
   Wire.begin(); 
-
-  //////////////////////////////////////////////////////////////////////////
+  
+  /*==============DECODER==============*/
   
   pinMode(OE, OUTPUT); //!OE
   pinMode(SEL, OUTPUT); //SEL
@@ -59,39 +77,44 @@ void setup() {
   
   pinMode(A7,INPUT);
   
+  //Solenoid/////////////////////////////////////////////////////////////////
+  pinMode(13,OUTPUT);
+  
+  carriage_init();
+  
 }
 
 int read_decoder() {
-  
-  uint8_t MSB[8];
-  uint8_t LSB[8];
+ 
+  uint8_t MSB_LSB[16];
+  int temp = 0;
   
   digitalWrite(SEL,LOW); //Sel
   digitalWrite(OE,LOW); //!OE
   delayMicroseconds(25);
   
-  //MSB = PINK;
-  MSB[0] = digitalRead(A8);
-  MSB[1] = digitalRead(A9);
-  MSB[2] = digitalRead(A10);
-  MSB[3] = digitalRead(A11);
-  MSB[4] = digitalRead(A12);
-  MSB[5] = digitalRead(A13);
-  MSB[6] = digitalRead(A14);
-  MSB[7] = digitalRead(A15);
+  MSB_LSB[0] = digitalRead(A8);
+  MSB_LSB[1] = digitalRead(A9);
+  MSB_LSB[2] = digitalRead(A10);
+  MSB_LSB[3] = digitalRead(A11);
+  MSB_LSB[4] = digitalRead(A12);
+  MSB_LSB[5] = digitalRead(A13);
+  MSB_LSB[6] = digitalRead(A14);
+  MSB_LSB[7] = digitalRead(A15);
   
   digitalWrite(SEL,HIGH); //Sel
   delayMicroseconds(25);
   
-  //LSB = PINK;
-  LSB[0] = digitalRead(A8);
-  LSB[1] = digitalRead(A9);
-  LSB[2] = digitalRead(A10);
-  LSB[3] = digitalRead(A11);
-  LSB[4] = digitalRead(A12);
-  LSB[5] = digitalRead(A13);
-  LSB[6] = digitalRead(A14);
-  LSB[7] = digitalRead(A15);
+  
+  
+  MSB_LSB[8] = digitalRead(A8);
+  MSB_LSB[9] = digitalRead(A9);
+  MSB_LSB[10] = digitalRead(A10);
+  MSB_LSB[11] = digitalRead(A11);
+  MSB_LSB[12] = digitalRead(A12);
+  MSB_LSB[13] = digitalRead(A13);
+  MSB_LSB[14] = digitalRead(A14);
+  MSB_LSB[15] = digitalRead(A15);
   
   digitalWrite(RST,LOW); //Rst
   delayMicroseconds(5);
@@ -99,19 +122,18 @@ int read_decoder() {
   
   digitalWrite(OE,HIGH); //!OE
   
-  //Serial.print(MSB);
-  //Serial.print(LSB);
-  
-  for(int i = 0; i < 8; i++) {
-     Serial.print(MSB[i]); 
+  for(int i = 0; i < 15; i++) {
+    if(MSB_LSB[0]) {
+      temp += (!MSB_LSB[15-i])*(2^(i)+1);
+    } else {
+      temp += (MSB_LSB[15-i])*(2^(i));      
+    }
   }
-  for(int i = 0; i < 8; i++) {
-     Serial.print(LSB[i]); 
+  if(MSB_LSB[0]) {
+    temp = temp * (-1);
   }
-  Serial.println();
   
-  return 0;
-  //return (MSB << 4) + LSB);
+  return temp;
   
 }
 
@@ -128,6 +150,24 @@ void carriage_right() {
 
 void carriage_left() {
    digitalWrite(DIR,LOW);
+}
+
+void carriage_init() {
+  carriage_speed(255);
+  carriage_left();
+  int decoder = 10;
+  delay(300);
+  carriage_speed(0);
+  x_axis = 0;
+}
+
+void get_position() {
+  
+}
+
+ISR(Timer0_COMPA_vect) // timer compare interrupt service routine
+{
+  Serial.println("Interrupt!");
 }
 
 void loop()
@@ -158,26 +198,41 @@ void loop()
         case 'R': //right
           carriage_speed(110);
           carriage_right();
+
           break;
         default:
           carriage_speed(0);
           break;
        }
+       
        uint8_t pos = 150-rxBuf[1];
        if((pos > 50) && (pos < 140)) {
          myservo.write(pos);
-         Serial.print(rxBuf[1]);
-         Serial.print("->");
-         Serial.println(pos);
+       }
+       
+       switch(rxBuf[2]) {
+        case 1: //left
+          digitalWrite(13,HIGH);
+          delay(250);
+          digitalWrite(13,LOW);
+          break;
+        case 2: //right
+          digitalWrite(13,HIGH);
+          delay(250);
+          digitalWrite(13,LOW);
+          break;
+        case 3: //Both
+          digitalWrite(13,HIGH);
+          delay(250);
+          digitalWrite(13,LOW);
+          break;
        }
     }
-    
-    uint8_t adc = analogRead(A7);
-    Serial.print("ADC:");
-    Serial.println(A7);
-    //read_decoder();
-    delay(10);
+    x_axis -= read_decoder();
+    //Serial.println(x_axis);
 }
+
+
 
 /*********************************************************************************************************
   END FILE

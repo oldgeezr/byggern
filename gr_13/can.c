@@ -128,14 +128,17 @@ void CAN_test_msg_normal_mode(void) {
 	
 	joystick_control joy_control;
 	slider_position position;
+	slider_btn_state btn_state;
 	
 	position = SLIDER_get_position();
 	joy_control = JOYSTICK_get_direction();
+	btn_state = SLIDER_get_btn_state();
 	
 	msg.id = 155;
-	msg.length = 2;
+	msg.length = 3;
 	msg.data[0] = joy_control;
-	msg.data[1] = position.left_pos;
+	msg.data[1] = position.right_pos;
+	msg.data[2] = btn_state;
 	
 	CAN_msg_send(&msg);
 	

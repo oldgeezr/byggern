@@ -44,8 +44,7 @@ int main(void)
 		
 		CAN_test_msg_normal_mode();
 		//CAN_test_receive();
-		//CAN_test_msg_normal_mode();
 	
-		_delay_ms(10);
+		//_delay_ms(10);
     }
 }
