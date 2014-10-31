@@ -228,9 +228,10 @@ void loop() {
       
       //print_can_msg();
       
+      char command = rxBuf[0];
+      
       /*==============FSM==============*/
       if(!state) {
-          char command = rxBuf[0];
        
           if(command == 'N') {
              //New game
@@ -244,6 +245,9 @@ void loop() {
               state = 1;
           }
       } else {
+          if (command == 'S') {
+             state = 0; 
+          }
           
           char carriage_control = rxBuf[1];
           char servo_control = rxBuf[2];
@@ -290,7 +294,14 @@ void loop() {
            }
            score_counter();
       }
+      
+      Serial.print("Command and state: ");
+          Serial.print(command);
+          Serial.print(" ");
+          Serial.println(state);
     }
+   
+   
    
    /*
    carriage_init(); 
@@ -306,8 +317,8 @@ void loop() {
    
    //Serial.print("Decoder: ");
    //Serial.println(x_axis);
-   score_counter();
-   Serial.println(score);
+   // score_counter();
+   // Serial.println(score);
 }
 
 

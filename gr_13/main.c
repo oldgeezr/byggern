@@ -36,14 +36,22 @@ int main(void)
 	GICR |= (1 << INT2); //For CAN rxbuf
 	sei();
 	
+	uint8_t schedular = 0;
+	
 	for(;;) {
+			
+		if (schedular) {
+			CAN_test_msg_normal_mode();
+		} else {
+			MENU_run();
+		}
 		
-		MENU_root();
+		schedular ^= 1;
 		
 		//SLIDER_get_position();
 		
-		CAN_test_msg_normal_mode();
-		//CAN_test_receive();
+		// CAN_test_msg_normal_mode();
+		// CAN_test_receive();
 	
 		//_delay_ms(10);
     }

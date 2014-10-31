@@ -14,6 +14,7 @@
 #define MCP_MLOA 5
 #define MCP_TXERR 4
 #define MCP_TXREQ 3
+#define EMPTY 'E'
 
 typedef struct{
 	unsigned int id;
@@ -33,6 +34,7 @@ void CAN_init(void);
 can_status_flag CAN_msg_send(can_message_t *msg);
 can_status_flag CAN_error();
 uint8_t CAN_transmit_complete();
+void CAN_send_command(uint8_t cmd);
 can_message_t CAN_msg_receive();
 void CAN_test_loopback_msg(void);
 void CAN_test_msg_normal_mode(void);
