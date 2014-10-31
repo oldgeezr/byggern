@@ -18,8 +18,8 @@ volatile char *command = (char *) 0x1000;
 volatile char *data = (char *) 0x1200;
 
 void OLED_init() {
-	*command = 0xae; // display off
-	*command = 0xa1; //segment remap
+	*command = SET_DISPLAY_POWER_OFF; // display off
+	*command = SET_SEGMENT_REMAP_127; //segment remap
 	*command = 0xda; //common pads hardware: alternative
 	*command = 0x12;
 	*command = 0xc8; //commonoutput scan direction:com63~com0

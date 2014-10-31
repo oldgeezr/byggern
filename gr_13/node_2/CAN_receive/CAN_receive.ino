@@ -16,6 +16,9 @@ unsigned char rxBuf[8];
 Servo myservo;
 
 int x_axis;
+int score;
+int flag = 1;
+int state = 0;
 
 MCP_CAN CAN0(53); // Set CS to pin 53
 
@@ -24,6 +27,10 @@ MCP_CAN CAN0(53); // Set CS to pin 53
 #define SEL A4
 #define EN A5
 #define DIR A6
+
+#define SERVO_PIN 4
+#define DIODE_PIN A7
+#define SOLENOID_PIN 13
 
 #define CENTER 3700 //Needs to be changed...
 
@@ -70,19 +77,22 @@ void setup(void) {
 
   /*==============SERVO==============*/
 
-  myservo.attach(4);
-  pinMode(A7,INPUT); //What is this?
+  myservo.attach(SERVO_PIN);
+  
+  /*=============DIODE==============*/
+  pinMode(A7,INPUT);
   
   /*==============SOLENOID==============*/
 
-  pinMode(13,OUTPUT);
-  digitalWrite(13,LOW);
+  pinMode(SOLENOID_PIN,OUTPUT);
+  digitalWrite(SOLENOID_PIN,LOW);
 
   /*==============INTERRUPTS==============*/
   Timer3.initialize(5000);         // initialize timer1, and set a 1/2 second period
   Timer3.attachInterrupt(callback);  // attaches callback() as a timer overflow interrupt
 
-  carriage_center();
+  //carriage_center();
+
 }
 
 uint8_t reverse_byte(uint8_t x) {
@@ -175,11 +185,6 @@ void callback() {
   x_axis -= read_decoder();
 }
 
-/*********************************************************************************************************
-  LOOP
-*********************************************************************************************************/
-
-
 void print_can_msg(void) {
   Serial.print("ID: ");
   Serial.print(rxId, HEX);
@@ -195,55 +200,99 @@ void print_can_msg(void) {
   Serial.println();
 }
 
+uint8_t get_diode_status(void) {
+  uint8_t temp;
+  temp += analogRead(DIODE_PIN);
+  temp += analogRead(DIODE_PIN);
+  //Serial.print("Diode:");
+  //Serial.println(temp);
+  return (temp/2);  
+}
+
+void score_counter(void) {
+ if((get_diode_status() < 25) && flag) {
+   score++;
+   flag = 0;
+   state = 0; 
+ }
+}
+
+/*********************************************************************************************************
+  LOOP
+*********************************************************************************************************/
+
 void loop() {    
-    
     if(!digitalRead(2)) {
       CAN0.readMsgBuf(&len, rxBuf);              // Read data: len = data length, buf = data byte(s)
       rxId = CAN0.getCanId();                    // Get message ID
       
       //print_can_msg();
-
-      /*==============CARRIAGE==============*/
-      switch(rxBuf[0]) {
-        case 'L': //left
-          carriage_speed(110);
-          carriage_left();
-          break;
-        case 'R': //right
-          carriage_speed(110);
-          carriage_right();
-          break;
-        default:
-          carriage_speed(0);
-          break;
-       }
-
-       /*================SERVO===============*/
-       uint8_t pos = 150-rxBuf[1];
-       if((pos > 50) && (pos < 140)) {
-         myservo.write(pos);
-       }
+      
+      /*==============FSM==============*/
+      if(!state) {
+          char command = rxBuf[0];
        
-       /*==============SOLENOID==============*/
-       switch(rxBuf[2]) {
-        case 1: //left
-          digitalWrite(13,HIGH);
-          delay(250);
-          digitalWrite(13,LOW);
-          break;
-        case 2: //right
-          digitalWrite(13,HIGH);
-          delay(250);
-          digitalWrite(13,LOW);
-          break;
-        case 3: //Both
-          digitalWrite(13,HIGH);
-          delay(250);
-          digitalWrite(13,LOW);
-          break;
-       }
+          if(command == 'N') {
+             //New game
+              score = 0;
+              flag = 1;
+              state = 1; 
+          }
+          if(command == 'C') {
+              //Continue
+              flag = 1;
+              state = 1;
+          }
+      } else {
+          
+          char carriage_control = rxBuf[1];
+          char servo_control = rxBuf[2];
+          char solenoid_control = rxBuf[3];
+          
+          /*===========CARRIAGE CONTROL==========*/
+          switch(carriage_control) {
+            case 'L': //left
+              carriage_speed(110);
+              carriage_left();
+              break;
+            case 'R': //right
+              carriage_speed(110);
+              carriage_right();
+              break;
+            default:
+              carriage_speed(0);
+              break;
+           }
+    
+           /*================SERVO===============*/
+           uint8_t pos = 150-servo_control;
+           if((pos > 50) && (pos < 140)) {
+             myservo.write(pos);
+           }
+           
+           /*==============SOLENOID==============*/
+           switch(solenoid_control) {
+            case 1: //left
+              digitalWrite(SOLENOID_PIN,HIGH);
+              delay(250);
+              digitalWrite(SOLENOID_PIN,LOW);
+              break;
+            case 2: //right
+              digitalWrite(SOLENOID_PIN,HIGH);
+              delay(250);
+              digitalWrite(SOLENOID_PIN,LOW);
+              break;
+            case 3: //Both
+              digitalWrite(SOLENOID_PIN,HIGH);
+              delay(250);
+              digitalWrite(SOLENOID_PIN,LOW);
+              break;
+           }
+           score_counter();
+      }
     }
    
+   /*
    carriage_init(); 
    carriage_center();
    delay(1000);
@@ -253,11 +302,12 @@ void loop() {
    carriage_init();
    carriage_goto_pos(7000);
    delay(1000);
+   */
    
-   
-   Serial.print("Decoder: ");
-   Serial.println(x_axis);
-   
+   //Serial.print("Decoder: ");
+   //Serial.println(x_axis);
+   score_counter();
+   Serial.println(score);
 }
 
 

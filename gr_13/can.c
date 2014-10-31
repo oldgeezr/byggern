@@ -123,6 +123,16 @@ void CAN_test_receive(void) {
 	printf("\n");
 }
 
+void CAN_send_command(uint8_t cmd) {
+	can_message_t msg;
+	
+	msg.id = 100;
+	msg.length = 1;
+	msg.data[0] = cmd;
+	
+	CAN_msg_send(&msg);
+}
+
 void CAN_test_msg_normal_mode(void) {
 	can_message_t msg;
 	
@@ -135,10 +145,16 @@ void CAN_test_msg_normal_mode(void) {
 	btn_state = SLIDER_get_btn_state();
 	
 	msg.id = 155;
-	msg.length = 3;
-	msg.data[0] = joy_control;
-	msg.data[1] = position.right_pos;
-	msg.data[2] = btn_state;
+	msg.length = 8;
+	
+	msg.data[0] = 'C'; //Command
+	msg.data[1] = joy_control;
+	msg.data[2] = position.right_pos;
+	msg.data[3] = btn_state;
+	msg.data[4] = 0;
+	msg.data[5] = 0;
+	msg.data[6] = 0;
+	msg.data[7] = 0;
 	
 	CAN_msg_send(&msg);
 	

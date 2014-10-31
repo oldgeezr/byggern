@@ -17,6 +17,19 @@ typedef enum {
 	MENU
 } menu_options;
 
+typedef enum {
+	PLAY_NEWGAME,
+	PLAY_CONTINUE,	
+	PLAY_INGAME,
+	PLAY_STOP
+} play_options;
+
+typedef enum {
+	NEW_GAME = 'N',
+	CONTINUE = 'C',
+	NOP = '0'
+} game_command;
+
 void MENU_root(void);
 void MENU_draw_menu(void);
 void MENU_draw(void);
@@ -24,4 +37,5 @@ void MENU_select(menu_options option);
 void MENU_draw_play(void);
 void MENU_draw_options(void);
 void MENU_draw_info(void);
+
 #endif

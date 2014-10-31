@@ -38,7 +38,7 @@ int main(void)
 	
 	for(;;) {
 		
-		//MENU_root();
+		MENU_root();
 		
 		//SLIDER_get_position();
 		

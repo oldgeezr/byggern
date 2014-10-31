@@ -104,9 +104,21 @@ slider_position SLIDER_get_position(void) {
 	slider_position position;
 
 	uint8_t l_pos, r_pos;
+	uint16_t temp;
 	
-	l_pos = ADC_read(SLIDER_L);
-	r_pos = ADC_read(SLIDER_R);
+	/*
+	temp = 0;
+	temp += ADC_read(SLIDER_L);
+	temp += ADC_read(SLIDER_L);
+	temp += ADC_read(SLIDER_L);
+	l_pos = temp / 3;
+	*/
+	
+	temp = 0;
+	temp += ADC_read(SLIDER_R);
+	temp += ADC_read(SLIDER_R);
+	temp += ADC_read(SLIDER_R);
+	r_pos = temp / 3;
 	
 	// Convert to percentage
 	position.left_pos = 100*l_pos/255;
