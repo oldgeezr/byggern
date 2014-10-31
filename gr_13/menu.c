@@ -20,15 +20,9 @@ const uint8_t P_OPTIONS = PLAY_INGAME - PLAY_NEWGAME;
 #include <stdlib.h>
 #include <util/delay.h>
 
-<<<<<<< HEAD
-menu_options state = MENU;
-uint8_t ingame;
-uint8_t LIVES;
-=======
 uint8_t state = MENU;
 uint8_t ingame = 0;
 uint8_t lives = 3;
->>>>>>> ad297cfae4f9a9abaaab9a55f7718daa670a1a00
 
 void MENU_run(void) {
 	
@@ -275,6 +269,12 @@ void MENU_draw(void) {
 			break;
 		case INFO:
 			MENU_draw_info();
+			break;
+		case PLAY_INGAME:
+			PLAY_draw_ingame();
+			break;
+		case PLAY_STOP:
+			PLAY_draw_stop();
 			break;
 	}
 }
