@@ -7,22 +7,12 @@
 
 #include "sram.h"
 #include <avr/io.h>
-#include <stdio.h>
-#include <stdint.h>
 
 void SRAM_init(void) {
 	MCUCR |= (1<<SRE);
 }
 
-void SRAM_gal_cs_test(void) {
-	volatile char *ext_ram = (char *) 0x1400;
-	ext_ram[0] = 100;
-}
-
 void SRAM_test(void) {
-	// Start address for the SRAM
-	volatile char *ext_ram = (char *) 0x1800;
-
 	uint16_t i, werrors, rerrors;
 	werrors = 0;
 	rerrors = 0;

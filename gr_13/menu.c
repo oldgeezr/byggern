@@ -20,6 +20,7 @@ const uint8_t P_OPTIONS = PLAY_INGAME - PLAY_NEWGAME;
 
 menu_options state = MENU;
 uint8_t ingame;
+uint8_t LIVES;
 
 void MENU_run(void) {
 	
@@ -251,12 +252,6 @@ void MENU_draw(void) {
 			break;
 		case INFO:
 			MENU_draw_info();
-			break;
-		case PLAY_INGAME:
-			PLAY_draw_ingame();
-			break;
-		case PLAY_STOP:
-			PLAY_draw_stop();
 			break;
 	}
 }

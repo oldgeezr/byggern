@@ -131,7 +131,6 @@ Copyright 2003 Kimberly Otten Software Consulting
 
 #define MCP_RESET		0xC0
 
-
 // CANCTRL Register Values
 
 #define MODE_NORMAL     0x00
@@ -150,7 +149,6 @@ Copyright 2003 Kimberly Otten Software Consulting
 #define CLKOUT_PS4		0x02
 #define CLKOUT_PS8		0x03
 
-
 // CNF1 Register Values
 
 #define SJW1            0x00
@@ -158,13 +156,11 @@ Copyright 2003 Kimberly Otten Software Consulting
 #define SJW3            0x80
 #define SJW4            0xC0
 
-
 // CNF2 Register Values
 
 #define BTLMODE			0x80
 #define SAMPLE_1X       0x00
 #define SAMPLE_3X       0x40
-
 
 // CNF3 Register Values
 
@@ -172,7 +168,6 @@ Copyright 2003 Kimberly Otten Software Consulting
 #define SOF_DISABLE		0x00
 #define WAKFIL_ENABLE	0x40
 #define WAKFIL_DISABLE	0x00
-
 
 // CANINTF Register Bits
 

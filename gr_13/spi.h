@@ -8,10 +8,10 @@
 #ifndef _SPI_H_
 #define _SPI_H_
 
-#define SS   PB4
-#define MOSI PB5
-#define MISO PB6
-#define SCK	 PB7
+#define SS_PIN   PB4
+#define MOSI_PIN PB5
+#define MISO_PIN PB6
+#define SCK_PIN	 PB7
 
 #include <avr/io.h>
 
@@ -21,10 +21,10 @@ void SPI_write(char data);
 char SPI_read(void);
 
 static inline void SPI_select(void) {
-	PORTB &= ~(1 << SS);
+	PORTB &= ~(1 << SS_PIN);
 }
 static inline void SPI_deselect(void) {
-	PORTB |= (1 << SS);
+	PORTB |= (1 << SS_PIN);
 }
 
 #endif

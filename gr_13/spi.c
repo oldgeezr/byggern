@@ -9,14 +9,13 @@
 
 void SPI_init(void) {
 	//Set MOSI, SCK and SS as output, all others input
-	DDRB |= (1 << MOSI) | (1 << SCK) | (1 << SS);
-	DDRB &= ~(1 << MISO);
-	SPCR |= (1 << SPE) | (1 << MSTR) | (1 << SPR0); //Enable SPI, Master
-	//SPSR |= (1 << SPI2X);
+	DDRB |= (1 << MOSI_PIN) | (1 << SCK_PIN) | (1 << SS_PIN);
+	DDRB &= ~(1 << MISO_PIN);
+	SPCR |= (1 << SPE) | (1 << MSTR) | (1 << SPR0); //Enable SPI Master mode
 }
 
 void SPI_slave_init(void) {
-	DDRB = (1 << MISO);
+	DDRB = (1 << MISO_PIN);
 	SPCR = (1 << SPE);
 }
 
