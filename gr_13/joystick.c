@@ -124,7 +124,7 @@ slider_position SLIDER_get_position(void) {
 	position.left_pos = 100*l_pos/255;
 	position.right_pos = 100*r_pos/255;
 	
-	printf("x: %d, y: %d\n", position.left_pos, position.right_pos);
+	// printf("x: %d, y: %d\n", position.left_pos, position.right_pos);
 	
 	return position;
 }

@@ -55,6 +55,8 @@ can_message_t CAN_msg_receive(void) {
 			msg.data[i] = MCP2515_read(MCP_RXB0D0 + i); //Get data
 		}
 		rx_flag = 0;
+	} else {
+		msg.id = EMPTY;
 	}
 	
 	return msg;
@@ -147,7 +149,7 @@ void CAN_test_msg_normal_mode(void) {
 	msg.id = 155;
 	msg.length = 8;
 	
-	msg.data[0] = 'C'; //Command
+	msg.data[0] = '0'; //Command
 	msg.data[1] = joy_control;
 	msg.data[2] = position.right_pos;
 	msg.data[3] = btn_state;

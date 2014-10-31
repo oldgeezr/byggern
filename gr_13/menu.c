@@ -15,12 +15,20 @@ const uint8_t P_OPTIONS = PLAY_INGAME - PLAY_NEWGAME;
 
 #include "oled.h"
 #include "joystick.h"
+#include "can.h"
+#include "uart.h"
 #include <stdlib.h>
 #include <util/delay.h>
 
+<<<<<<< HEAD
 menu_options state = MENU;
 uint8_t ingame;
 uint8_t LIVES;
+=======
+uint8_t state = MENU;
+uint8_t ingame = 0;
+uint8_t lives = 3;
+>>>>>>> ad297cfae4f9a9abaaab9a55f7718daa670a1a00
 
 void MENU_run(void) {
 	
@@ -53,6 +61,9 @@ void MENU_root(void) {
 		_delay_ms(250);
 	}
 	if (direction == RIGHT) {
+		if (option == PLAY) {;
+			ingame = 1;
+		} 
 		state = option;
 		MENU_draw();
 	}
@@ -66,35 +77,46 @@ void MENU_root(void) {
 
 void PLAY_root(void) {
 	
-	static play_options option = PLAY_INGAME;
-	static play_options previous_option = PLAY_INGAME;
+	static play_options option = PLAY_NEWGAME;
+	static play_options previous_option = PLAY_NEWGAME;
+	static can_message_t carriage_msg;
 	
 	joystick_control direction = JOYSTICK_get_direction();
 	
-	if (direction == UP) {
+	carriage_msg = CAN_msg_receive();
+	printf("Carriage_msg: %d\n", carriage_msg.data[0]);
+	
+	if (direction == UP || direction == DOWN) {
 		previous_option = option;
-		option = (option + 1) % (P_OPTIONS);
+		if (option == PLAY_NEWGAME) {
+			option = PLAY_CONTINUE;
+		} else {
+			option = PLAY_NEWGAME;
+		}
 		PLAY_select(option);
-		OLED_scroll_left(previous_option+4, previous_option+4);
-		_delay_ms(250);
-	}
-	if (direction == DOWN) {
-		previous_option = option;
-		option = ((option - 1) + P_OPTIONS) % P_OPTIONS;
-		PLAY_select(option);
-		OLED_scroll_left(previous_option+4, previous_option+4);
+		OLED_scroll_left(previous_option, previous_option);
 		_delay_ms(250);
 	}
 	if (direction == RIGHT) {
-		if (option == PLAY_NEWGAME) {
-			LIVES = 3;
+		if (!(option == PLAY_CONTINUE && lives != 0)) { // Can only continue if lives left
+			lives = 3;
+			CAN_send_command('N'); // New game
 		}
-		
-		state = option;
+		CAN_send_command('C'); // Continue
+		state = PLAY_INGAME;
+		MENU_draw();
+	}
+	if (carriage_msg.id != EMPTY) {
+		lives -= carriage_msg.data[0];
+		state = PLAY_STOP;
+		option = PLAY_NEWGAME;
 		MENU_draw();
 	}
 	if (direction == BTN_DOWN) {
+		// have to do some resets here
 		state = MENU;
+		ingame = 0; // Go back to menu root
+		CAN_send_command('S'); // STOP game
 		option = PLAY;
 		previous_option = PLAY;
 		MENU_draw();
@@ -122,10 +144,10 @@ void PLAY_select(play_options option) {
 	
 	switch(option) {
 		case PLAY_CONTINUE:
-			OLED_scroll_right(PLAY_CONTINUE+4,PLAY_CONTINUE+4);
+			OLED_scroll_right(PLAY_CONTINUE,PLAY_CONTINUE);
 			break;
 		case PLAY_NEWGAME:
-			OLED_scroll_right(PLAY_NEWGAME+4,PLAY_NEWGAME+4);
+			OLED_scroll_right(PLAY_NEWGAME,PLAY_NEWGAME);
 			break;
 		case PLAY_INGAME:
 			break;
@@ -210,13 +232,12 @@ void PLAY_draw_ingame(void) {
 	
 	OLED_set_pages(4,4);
 	OLED_set_columns(64-36,127);
-	OLED_write_string("LIVES : 3");
+	OLED_write_string("LIVES : ");
+	OLED_write_char((lives + '0'));
 	
 }
 
 void PLAY_draw_stop(void) {
-	
-	uint8_t align = 36;
 	
 	OLED_clear();
 	
@@ -226,11 +247,13 @@ void PLAY_draw_stop(void) {
 	
 	OLED_set_pages(2,2);
 	OLED_set_columns(64-52,127);
-	OLED_write_string("LIVES LEFT: 2");
+	OLED_write_string("LIVES LEFT: ");
+	OLED_write_char((lives + '0'));
 	
 	OLED_set_pages(4,4);
 	OLED_set_columns(64-32,127);
 	OLED_write_string("NEW GAME");
+	OLED_scroll_right(4,4);
 	
 	OLED_set_pages(5,5);
 	OLED_set_columns(64-32,127);
