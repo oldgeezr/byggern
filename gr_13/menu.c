@@ -16,7 +16,6 @@ const uint8_t P_OPTIONS = PLAY_INGAME - PLAY_NEWGAME;
 #include "oled.h"
 #include "joystick.h"
 #include "can.h"
-#include "uart.h"
 #include <stdlib.h>
 #include <util/delay.h>
 
@@ -44,14 +43,14 @@ void MENU_root(void) {
 		previous_option = option;
 		option = (option + 1) % (N_OPTIONS);
 		MENU_select(option);
-		OLED_scroll_left(previous_option+3, previous_option+3);
+		OLED_scroll_page_left(previous_option,3);
 		_delay_ms(250);
 	}
 	if (direction == DOWN) {
 		previous_option = option;
 		option = ((option - 1) + N_OPTIONS) % N_OPTIONS;
 		MENU_select(option);
-		OLED_scroll_left(previous_option+3, previous_option+3);
+		OLED_scroll_page_left(previous_option,3);
 		_delay_ms(250);
 	}
 	if (direction == RIGHT) {
@@ -78,7 +77,6 @@ void PLAY_root(void) {
 	joystick_control direction = JOYSTICK_get_direction();
 	
 	carriage_msg = CAN_msg_receive();
-	printf("Carriage_msg: %d\n", carriage_msg.data[0]);
 	
 	if (direction == UP || direction == DOWN) {
 		previous_option = option;
@@ -88,7 +86,7 @@ void PLAY_root(void) {
 			option = PLAY_NEWGAME;
 		}
 		PLAY_select(option);
-		OLED_scroll_left(previous_option, previous_option);
+		OLED_scroll_page_left(previous_option,0);
 		_delay_ms(250);
 	}
 	if (direction == RIGHT) {
@@ -121,13 +119,13 @@ void MENU_select(menu_options option) {
 	
 	switch(option) {
 		case PLAY:
-			OLED_scroll_right(PLAY+3,PLAY+3);
+			OLED_scroll_page_right(PLAY,3);
 			break;
 		case OPTIONS:
-			OLED_scroll_right(OPTIONS+3,OPTIONS+3);
+			OLED_scroll_page_right(OPTIONS,3);
 			break;
 		case INFO:
-			OLED_scroll_right(INFO+3,INFO+3);
+			OLED_scroll_page_right(INFO,3);
 			break;
 		case MENU:
 			break;
@@ -138,10 +136,10 @@ void PLAY_select(play_options option) {
 	
 	switch(option) {
 		case PLAY_CONTINUE:
-			OLED_scroll_right(PLAY_CONTINUE,PLAY_CONTINUE);
+			OLED_scroll_page_right(PLAY_CONTINUE,0);
 			break;
 		case PLAY_NEWGAME:
-			OLED_scroll_right(PLAY_NEWGAME,PLAY_NEWGAME);
+			OLED_scroll_page_right(PLAY_NEWGAME,0);
 			break;
 		case PLAY_INGAME:
 			break;
@@ -151,108 +149,47 @@ void PLAY_select(play_options option) {
 }
 
 void MENU_draw_menu(void) {
-	
-	uint8_t align = 36;
-	
 	OLED_clear();
-	
-	OLED_set_pages(1,1);
-	OLED_set_columns(64-16,127);
-	OLED_write_string("MENU");
-	
-	OLED_set_pages(3,3);
-	OLED_set_columns(align,127);
-	OLED_write_string("PLAY");
-	OLED_scroll_right(3,3);
-	
-	OLED_set_pages(4,4);
-	OLED_set_columns(align,127);
-	OLED_write_string("OPTIONS");
-	
-	OLED_set_pages(5,5);
-	OLED_set_columns(align,127);
-	OLED_write_string("INFO");
-	
+	OLED_write_align_center(64,1,"MENU");
+	OLED_write_align_left(36,3,"PLAY");
+	OLED_scroll_page_right(3,0);
+	OLED_write_align_left(36,4,"OPTIONS");
+	OLED_write_align_left(36,5,"INFO");
 }
 
 void MENU_draw_play(void) {
-	
 	OLED_clear();
-	
-	OLED_set_pages(3,3);
-	OLED_set_columns(64-40,127);
-	OLED_write_string("PLAYING...");
+	OLED_write_align_center(64,3,"PLAYING...");
 }
 
 void MENU_draw_options(void) {
-	
 	OLED_clear();
-	
-	OLED_set_pages(3,3);
-	OLED_set_columns(64-48,127);
-	OLED_write_string("There are no");
-	OLED_set_pages(4,4);
-	OLED_set_columns(64-56,127);
-	OLED_write_string("options at the");
-	OLED_set_pages(5,5);
-	OLED_set_columns(64-24,127);
-	OLED_write_string("moment");
+	OLED_write_align_center(64,3,"There are no");
+	OLED_write_align_center(64,4,"options at the");
+	OLED_write_align_center(64,5,"moment");
 }
 
 void MENU_draw_info(void) {
-	
-	uint8_t align = 36;
-	
 	OLED_clear();
-	
-	OLED_set_pages(2,2);
-	OLED_set_columns(align,127);
-	OLED_write_string("Made by:");
-	OLED_set_pages(4,4);
-	OLED_set_columns(64-64,127);
-	OLED_write_string("Christoffer RE &");
-	OLED_set_pages(5,5);
-	OLED_set_columns(64-32,127);
-	OLED_write_string("Erlend H");
+	OLED_write_align_left(36,2,"Made by:");
+	OLED_write_align_center(64,4,"Christoffer RE &");
+	OLED_write_align_center(64,5,"Erlend H");
 }
 
 void PLAY_draw_ingame(void) {
-	
 	OLED_clear();
-	
-	OLED_set_pages(1,1);
-	OLED_set_columns(64-28,127);
-	OLED_write_string("IN GAME");
-	
-	OLED_set_pages(4,4);
-	OLED_set_columns(64-36,127);
-	OLED_write_string("LIVES : ");
+	OLED_write_align_center(64,1,"IN GAME");
+	OLED_write_align_center(64,4,"LIVES : ");
 	OLED_write_char((lives + '0'));
-	
 }
 
 void PLAY_draw_stop(void) {
-	
 	OLED_clear();
-	
-	OLED_set_pages(1,1);
-	OLED_set_columns(64-40,127);
-	OLED_write_string("YOU LOOSE!");
-	
-	OLED_set_pages(2,2);
-	OLED_set_columns(64-52,127);
-	OLED_write_string("LIVES LEFT: ");
+	OLED_write_align_center(64,1,"YOU LOOSE!");
+	OLED_write_align_center(64,2,"LIVES LEFT: ");
 	OLED_write_char((lives + '0'));
-	
-	OLED_set_pages(4,4);
-	OLED_set_columns(64-32,127);
-	OLED_write_string("NEW GAME");
-	OLED_scroll_right(4,4);
-	
-	OLED_set_pages(5,5);
-	OLED_set_columns(64-32,127);
-	OLED_write_string("CONTINUE");
-	
+	OLED_write_align_center(64,4,"NEW GAME");
+	OLED_write_align_center(64,5,"CONTINUE");
 }
 
 void MENU_draw(void) {

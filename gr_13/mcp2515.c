@@ -7,6 +7,7 @@
 
 #include "MCP2515.h"
 #include "spi.h"
+#include "uart.h"
 
 #define F_CPU 4915200
 

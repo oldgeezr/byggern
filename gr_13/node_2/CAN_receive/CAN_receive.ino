@@ -214,6 +214,8 @@ void score_counter(void) {
    score++;
    flag = 0;
    state = 0; 
+   unsigned char stmp[1] = {1};
+   CAN0.sendMsgBuf(0x05, 0, 1, stmp); 
  }
 }
 
@@ -296,9 +298,9 @@ void loop() {
       }
       
       Serial.print("Command and state: ");
-          Serial.print(command);
-          Serial.print(" ");
-          Serial.println(state);
+      Serial.print(command);
+      Serial.print(" ");
+      Serial.println(state);
     }
    
    

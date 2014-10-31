@@ -109,19 +109,32 @@ void OLED_write_string(char *str) {
 	}
 }
 
-void OLED_set_pages(uint8_t page_start, uint8_t page_end) {
+static inline void OLED_set_pages(uint8_t page_start, uint8_t page_end) {
 	*command = SET_PAGE_ADDRESS;
 	*command = 0xB0 | page_start; //Start address
 	*command = 0xB0 | page_end; //End address
 }
 
-void OLED_set_columns(uint8_t col_start, uint8_t col_end) {
+static inline void OLED_set_columns(uint8_t col_start, uint8_t col_end) {
 	*command = SET_COLUMN_ADDRESS;
 	*command = col_start; //Start address
 	*command = col_end; //End address
 }
 
 void OLED_write_align_left(uint8_t x, uint8_t y, char *str) {
+	
+	//Guards
+	x %= COLUMNS;
+	y %= PAGES;
+	
+	//uint8_t offset = strlen(str)*4;
+	
+	OLED_set_pages(y,y);
+	OLED_set_columns(x,127);
+	OLED_write_string(str);
+}
+
+void OLED_write_align_center(uint8_t x, uint8_t y, char *str) {
 	
 	//Guards
 	x %= COLUMNS;
@@ -199,7 +212,7 @@ void OLED_scroll_page_left(uint8_t page,uint8_t offset) {
 	*command = SET_DEACTIVATE_SCROLL;
 	
 	//Experimental nice feature
-	OLED_write_align_left(20,(page+offset),'>');
+	//OLED_write_align_left(20,(page+offset),'>');
 }
 
 //SRAM functions

@@ -103,7 +103,7 @@ slider_position SLIDER_get_position(void) {
 	
 	slider_position position;
 
-	uint8_t l_pos, r_pos;
+	uint8_t r_pos; // l_pos
 	uint16_t temp;
 	
 	/*
@@ -115,16 +115,21 @@ slider_position SLIDER_get_position(void) {
 	*/
 	
 	temp = 0;
-	temp += ADC_read(SLIDER_R);
-	temp += ADC_read(SLIDER_R);
-	temp += ADC_read(SLIDER_R);
-	r_pos = temp / 3;
+	temp += ADC_read(SLIDER_L);
+	temp += ADC_read(SLIDER_L);
+	temp += ADC_read(SLIDER_L);
+	temp = temp / 3;
+	r_pos = temp;
+	
+	/*
+		NOTE TO SELF: The slider on the board is not working properly
+	*/
 	
 	// Convert to percentage
-	position.left_pos = 100*l_pos/255;
+	// position.left_pos = 100*l_pos/255;
 	position.right_pos = 100*r_pos/255;
 	
-	// printf("x: %d, y: %d\n", position.left_pos, position.right_pos);
+	// printf("x: %d\n", position.right_pos); //  position.left_pos);
 	
 	return position;
 }

@@ -16,15 +16,11 @@ void OLED_start(void);
 void OLED_clear(void);
 void OLED_fill(void);
 
-void OLED_set_pages(uint8_t page_start, uint8_t page_end);
-void OLED_set_columns(uint8_t col_start, uint8_t col_end);
-
 void OLED_write_char(uint8_t c);
 void OLED_write_string(char *str);
 void OLED_write_align_left(uint8_t x, uint8_t y, char *str);
+void OLED_write_align_center(uint8_t x, uint8_t y, char *str);
 
-void OLED_scroll_right(uint8_t page_start,uint8_t page_stop);
-void OLED_scroll_left(uint8_t page_start,uint8_t page_stop);
 void OLED_scroll_page_right(uint8_t page,uint8_t offset);
 void OLED_scroll_page_left(uint8_t page,uint8_t offset);
 
