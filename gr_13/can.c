@@ -44,6 +44,32 @@ can_status_flag CAN_msg_send(can_message_t *msg) {
 	return MSG_SENT;
 }
 
+void CAN_send_command(uint8_t cmd) {
+	can_message_t msg;
+	
+	msg.id = 100;
+	msg.length = 1;
+	msg.data[0] = cmd;
+	
+	CAN_msg_send(&msg);
+}
+
+void CAN_send_hid(void) {
+	can_message_t msg;
+	slider_position position;
+	
+	position = SLIDER_get_position();
+	
+	msg.id = 155;
+	msg.length = 2;
+	msg.data[0] = position.left_pos;
+	msg.data[1] = position.right_pos;
+	
+	CAN_msg_send(&msg);
+	
+	_delay_ms(10);
+}
+
 can_message_t CAN_msg_receive(void) {
 	can_message_t msg;
 	
@@ -125,16 +151,6 @@ void CAN_test_receive(void) {
 	printf("\n");
 }
 
-void CAN_send_command(uint8_t cmd) {
-	can_message_t msg;
-	
-	msg.id = 100;
-	msg.length = 1;
-	msg.data[0] = cmd;
-	
-	CAN_msg_send(&msg);
-}
-
 void CAN_test_msg_normal_mode(void) {
 	can_message_t msg;
 	
@@ -157,6 +173,8 @@ void CAN_test_msg_normal_mode(void) {
 	msg.data[5] = 0;
 	msg.data[6] = 0;
 	msg.data[7] = 0;
+	
+	printf("CAN msg: %d, %d, %d \n", msg.data[1], msg.data[2], msg.data[3]);
 	
 	CAN_msg_send(&msg);
 	

@@ -147,38 +147,6 @@ void OLED_write_align_center(uint8_t x, uint8_t y, char *str) {
 	OLED_write_string(str);
 }
 
-void OLED_scroll_right(uint8_t page_start,uint8_t page_stop) {
-	*command = SET_DEACTIVATE_SCROLL;
-	
-	*command = SET_RIGHT_HORIZONTAL_SCROLL;
-	*command = 0x00; //Dummy byte A
-	*command = page_start; //Start: PAGE0
-	*command = 0b100; //Speed
-	*command = page_stop; //End: PAGE7
-	*command = 0x00;
-	*command = 0xFF;
-	
-	*command = SET_ACTIVATE_SCROLL;
-	_delay_ms(100);
-	*command = SET_DEACTIVATE_SCROLL;
-}
-
-void OLED_scroll_left(uint8_t page_start,uint8_t page_stop) {
-	*command = SET_DEACTIVATE_SCROLL;
-	
-	*command = SET_LEFT_HORIZONTAL_SCROLL;
-	*command = 0x00; //Dummy byte A
-	*command = page_start; //Start: PAGE0
-	*command = 0b100; //Speed
-	*command = page_stop; //End: PAGE7
-	*command = 0x00;
-	*command = 0xFF;
-	
-	*command = SET_ACTIVATE_SCROLL;
-	_delay_ms(100);
-	*command = SET_DEACTIVATE_SCROLL;
-}
-
 void OLED_scroll_page_right(uint8_t page,uint8_t offset) {
 	*command = SET_DEACTIVATE_SCROLL;
 	

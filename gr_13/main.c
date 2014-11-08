@@ -39,13 +39,11 @@ int main(void)
 	uint8_t schedular = 0;
 	
 	for(;;) {
-			
 		if (schedular) {
-			CAN_test_msg_normal_mode();
-		} else {
 			MENU_run();
+		} else {
+			CAN_test_msg_normal_mode();
 		}
-		
 		schedular ^= 1;
 		
 		//SLIDER_get_position();
