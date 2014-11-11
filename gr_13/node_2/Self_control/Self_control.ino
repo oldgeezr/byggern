@@ -19,13 +19,15 @@ int x_axis;
 int score;
 int flag = 1;
 int state = 0;
+uint8_t car_init = 1; 
+uint8_t init_right = 1;
 
 uint16_t ball_x = 0;
 uint16_t ball_y = 0;
 
 MCP_CAN CAN0(53); // Set CS to pin 53
 
-#define MAX 80
+#define MAX 95
 #define CAMERA_OFFSET 10;
 
 #define OE A2
@@ -95,10 +97,8 @@ void setup(void) {
   digitalWrite(SOLENOID_PIN,LOW);
 
   /*==============INTERRUPTS==============*/
-  Timer3.initialize(5000);         // initialize timer1, and set a 1/2 second period
+  Timer3.initialize(3000);         // initialize timer1, and set a 1/2 second period
   Timer3.attachInterrupt(callback);  // attaches callback() as a timer overflow interrupt
-
-  //carriage_center();
 
 }
 
@@ -134,6 +134,10 @@ int read_decoder(void) {
   return ((MSB << 8) | LSB);
 }
 
+void callback() {
+  x_axis -= read_decoder();
+}
+
 void carriage_speed(int speed) {
   Wire.beginTransmission(byte(0b0101000)); //DAC addr
   Wire.write(0); 
@@ -150,47 +154,94 @@ static inline void carriage_left(void) {
 }
 
 void carriage_init(void) {
-  carriage_speed(155);
+  carriage_speed(255);
   carriage_left();
-  delay(600);
+  delay(300);
   carriage_speed(0);
-  delay(200);
+  delay(300);
   x_axis = 0;
 }
 
-uint8_t carriage_goto_pos(uint8_t x_percent) {
+void carriage_init_left(void) {
+  carriage_speed(255);
+  carriage_left();
+  delay(300);
+  carriage_speed(0);
+  delay(300);
+  x_axis = 0;
+}
+
+void carriage_init_right(void) {
+  carriage_speed(255);
+  carriage_right();
+  delay(300);
+  carriage_speed(0);
+  delay(300);
+  x_axis = MAX*100;
+}
+
+uint8_t carriage_goto_pos(int x_percent) {
     
-  uint8_t x = x_axis/MAX;
+  int x = x_axis/MAX;
   
-  if(x_percent < 3) {
-    x_percent = 4;
+  if(x > 100) {
+     x = 100;
+  }
+  if (x < 0) {
+     x = 0;
   }
   
-  if ((x < (x_percent + 3)) && (x > (x_percent - 3))) {
+  if(x_percent < 3) {
+    x_percent = 3;
+  }
+  if(x_percent > 97) {
+    x_percent = 97;
+  }
+  
+  if ((x <= (x_percent + 3)) && (x >= (x_percent - 3))) {
     carriage_speed(0);
     return 0; 
   }
   
+  
   if (x > x_percent) { 
 	do {
+          /*
+          Serial.print("top while ");
+          Serial.print("x: ");
+          Serial.print(x);
+          Serial.print("x_percent: ");
+          Serial.println(x_percent);
+          */
           x = x_axis/MAX;
-          carriage_speed(110);
+          carriage_speed(150);
           carriage_left();
-	} while (x >= x_percent);
+	} while (x > x_percent);
   } else {
 	do {
+           /*
+           Serial.print("bottom while ");
+           Serial.print("x: ");
+           Serial.print(x);
+           Serial.print("x_percent: ");
+           Serial.println(x_percent);
+           */
            x = x_axis/MAX;
-           carriage_speed(110);
+           carriage_speed(150);
 	   carriage_right();
-	} while (x <= x_percent);
+	} while (x < x_percent);
   }
+  /*
+  Serial.print("x: ");
+  Serial.print(x);
+  Serial.print("x_percent: ");
+  Serial.println(x_percent);
+  */
   carriage_speed(0);
   return 1;
 }
 
-void callback() {
-  x_axis -= read_decoder();
-}
+
 
 void print_can_msg(void) {
   Serial.print("ID: ");
@@ -214,8 +265,8 @@ uint8_t get_diode_status(void) {
   return (temp/2);  
 }
 
-void read_pi(void) {
-  if (Serial.available() > 0) {
+void read_raspi() {
+  while(Serial.available()) {
     char temp = Serial.read();         
     if(temp == 'X') {
       while(!(Serial.available() > 0));
@@ -229,35 +280,106 @@ void read_pi(void) {
   }
 }
 
+static inline int get_x(void) {
+  if (Serial.available() > 0) {
+    char temp = Serial.read();
+    if(temp == 'X') {
+    while(!(Serial.available() > 0));
+      return Serial.read();
+    } 
+  }
+  return -1;
+}
+
+static inline int get_y(void) {
+  if (Serial.available() > 0) {
+    char temp = Serial.read();
+    if(temp == 'Y') {
+    while(!(Serial.available() > 0));
+      return Serial.read();
+    } 
+  }
+  return -1;
+}
+
 uint8_t calculate_vector(void) {
  
- uint8_t x0,y0,x1,y1,y;
+ uint8_t x0, x1, y0, y1;
+ int dx, dy, x;
+ float a;
  
- int dx, dy, a;
+ int x_cor = -1;
+ int y_cor = -1;
+        
+ while(x_cor == -1) {
+   x_cor = get_x();
+ }
+        
+ while(y_cor == -1) {
+   y_cor = get_y();
+ }
+
+ x0 = x_cor;
+ y0 = y_cor;
  
- read_pi();
- x0 = ball_x;
- y0 = ball_y;
- delay(5);
- read_pi();
- x1 = ball_x;
- y1 = ball_y;
+ x_cor = -1;
+ y_cor = -1;
  
- if(y1 > y0) {
-  //carriage_init();
-  return 0;
+ while(x_cor == -1) {
+   x_cor = get_x();
+ }
+        
+ while(y_cor == -1) {
+   y_cor = get_y();
  }
  
- dy = y0-y1;
- dx = x0-x1;
- 
- if(dx == 0) {
+ x1 = x_cor;
+ y1 = y_cor;
+ /*
+ Serial.print("x0: ");
+ Serial.print(x0);
+ Serial.print(" x1: ");
+ Serial.print(x1);
+ Serial.print(" y0: ");
+ Serial.print(y0);
+ Serial.print(" y1: ");
+ Serial.print(y1);
+ */
+ if(y1 > y0) {
    return 0;
  }
  
- a = dy/dx;
+ dy = y1-y0;
+ dx = x1-x0;
+ /*
+ Serial.print(" dy: ");
+ Serial.print(dy);
  
- y = a*y0 + x0;
+ Serial.print(" dx: ");
+ Serial.print(dx);
+ */
+ if(dx == 0) {
+   return 50;
+ }
+ 
+ a = (float(dy))/(float(dx));
+ /*
+ Serial.print(" a: ");
+ Serial.print(a);
+ */
+ //x = x1 - (y1/a);
+ x = x1 + y1*a;
+ /*
+ Serial.print(" x: ");
+ Serial.println(x);
+ */
+ if (x > 255) {
+   return 100;
+ }
+ if (x < 0) {
+   return 1;
+ }
+ 
  /*
  Serial.print("Vector dy: ");
  Serial.print(dy);
@@ -268,7 +390,7 @@ uint8_t calculate_vector(void) {
  Serial.print(" y: ");
  Serial.println(y);
  */
- return ((y * 100) / 255); 
+ return ((x * 100) / 255); 
 }
 
 void score_counter(void) {
@@ -281,35 +403,134 @@ void score_counter(void) {
  }
 }
 
+void func() {
+ 
+ int y0 = 0;
+ int y1 = 0; 
+ int y_cor = -1;  
+  
+ while(y1 >= y0) { 
+   //Serial.println("Going up!");
+   y_cor = -1;  
+   while(y_cor == -1) {
+     y_cor = get_y();
+   }
+   y0 = y_cor;
+   y_cor = -1;
+   while(y_cor == -1) {
+     y_cor = get_y();
+   }
+   y1 = y_cor;
+ }
+ /*
+ while(y_cor > 200) {
+   //Serial.print(y_cor);
+   //Serial.println("Checking in to tha motel");
+   y_cor = -1;  
+   while(y_cor == -1) {
+     y_cor = get_y();
+   }
+ }
+ */
+ 
+ uint8_t goto_x = calculate_vector();
+ 
+ 
+ 
+ carriage_goto_pos(goto_x);
+ 
+ delay(1000);
+ 
+ carriage_init();
+ 
+}
+
 /*********************************************************************************************************
   LOOP
 *********************************************************************************************************/
 
 void loop() {
     
-    //read_pi();
-    //carriage_goto_pos(((ball_x*100)/255));
-    //Serial.println(ball_x);
+  /*
+  carriage_goto_pos(0);
+  Serial.print("Goto: 0 x_axis: ");
+  Serial.println(x_axis);
+  delay(1000);
+  carriage_goto_pos(100);
+  Serial.print("Goto: 100 x_axis: ");
+  Serial.println(x_axis);
+  delay(1000); 
+  carriage_goto_pos(50);
+  Serial.print("Goto: 100 x_axis: ");
+  Serial.println(x_axis);
+  delay(1000); 
+  */
+  //Serial.print("x_axis: ");
+  //Serial.println(x_axis);
+  
+    int previous_x = 0;
+    int goto_x;
+   
+    read_raspi();
     
+    goto_x = ((ball_x * 100) / 255); 
+    carriage_goto_pos(goto_x); 
     
-    
-    uint8_t goto_x = calculate_vector();
-    
-    
-    //Serial.println(goto_x);
-    
-    
-    if(goto_x != 0) {
-      carriage_goto_pos(goto_x);
+    /*
+    if(ball_x > previous_x) { //Going right
+      // goto_x = ((ball_x * 100) / 255); 
+      carriage_goto_pos(goto_x);  
+    } else {
+      goto_x = ((ball_x * 100) / 255) - 10;
+      carriage_goto_pos(goto_x); 
+    }
+    */
+    if(ball_y < 50 && ball_x < 40) {
+        myservo.write(140);
+    }
+    else if(ball_y < 50 && ball_x > 230) {
+        myservo.write(40);
+    } else {
+        myservo.write(90); 
     }
     
-    read_pi();
-    if((ball_y > 40) && (ball_y < 60)) {
+    if((ball_y > 5) && (ball_y < 40)) {
         digitalWrite(SOLENOID_PIN,HIGH);
-        delay(150);
-        digitalWrite(SOLENOID_PIN,LOW);  
+        delay(100);
+        digitalWrite(SOLENOID_PIN,LOW);
+        delay(100);
+        digitalWrite(SOLENOID_PIN,HIGH);
+        delay(100);
+        digitalWrite(SOLENOID_PIN,LOW);
+        if(goto_x > 50) {
+          //init_right = 0;
+          carriage_init_right();  
+        } else {
+          //init_right = 1;
+          carriage_init_left();  
+        }
+        ball_x = 0;
+        ball_y = 0;
+        
     }
     
+    //previous_x = ball_x;
+  
+     /*
+    read_raspi();
+    
+    static uint8_t goto_x = 0;
+    
+    if(ball_y > 120 && ball_y < 140) {
+      goto_x = calculate_vector();
+      carriage_goto_pos(goto_x);
+      delay(100);
+      //Serial.print("Goto: ");
+      //Serial.println(goto_x);
+    }
+    */
+    //func();
+
 }
 
 
