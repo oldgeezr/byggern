@@ -25,6 +25,12 @@ typedef enum {
 } play_options;
 
 typedef enum {
+	MANUAL = 8,
+	AUTO = 9,
+	GAME_STYLE = 10
+} game_options;
+
+typedef enum {
 	NEW_GAME = 'N',
 	CONTINUE = 'C',
 	NOC = '0'
@@ -38,6 +44,9 @@ void MENU_select(menu_options option);
 void MENU_draw_play(void);
 void MENU_draw_options(void);
 void MENU_draw_info(void);
+void GAME_root(void);
+void GAME_draw_mode(void);
+void GAME_select(game_options option);
 void PLAY_root(void);
 void PLAY_select(play_options option);
 void PLAY_draw_ingame(void);

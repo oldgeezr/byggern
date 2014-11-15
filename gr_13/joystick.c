@@ -58,11 +58,6 @@ int8_t JOYSTICK_get_position(joystick_control axis) {
 
 joystick_control JOYSTICK_get_direction() {
 	
-	/*
-	* NOTE! When getting the direction of the y-axis the program 
-	* runs very slow! Maybe it's just the printf func?
-	*/
-	
 	int8_t x_percent, y_percent;
 	
 	x_percent = JOYSTICK_get_position(JOY_X);
@@ -105,14 +100,6 @@ slider_position SLIDER_get_position(void) {
 
 	uint8_t r_pos; // l_pos
 	uint16_t temp;
-	
-	/*
-	temp = 0;
-	temp += ADC_read(SLIDER_L);
-	temp += ADC_read(SLIDER_L);
-	temp += ADC_read(SLIDER_L);
-	l_pos = temp / 3;
-	*/
 	
 	temp = 0;
 	temp += ADC_read(SLIDER_L);

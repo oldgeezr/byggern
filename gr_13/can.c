@@ -109,8 +109,14 @@ can_status_flag CAN_error(void) {
 	return NO_ERROR;
 }
 
-//TESTING//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
+ISR(INT2_vect) {
+	MCP2515_bit_modify(MCP_CANINTF,0x01,0); //Clear flag
+	rx_flag = 1;
+}
+
+/*
+ * Test functions
+*/
 
 void CAN_test_loopback_msg(void) {
 	can_message_t msg;
@@ -174,16 +180,8 @@ void CAN_test_msg_normal_mode(void) {
 	msg.data[6] = 0;
 	msg.data[7] = 0;
 	
-	printf("CAN msg: %d, %d, %d \n", msg.data[1], msg.data[2], msg.data[3]);
+	// printf("CAN msg: %d, %d, %d \n", msg.data[1], msg.data[2], msg.data[3]);
 	
 	CAN_msg_send(&msg);
 	
-}
-
-//ISR////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-
-ISR(INT2_vect) {
-	MCP2515_bit_modify(MCP_CANINTF,0x01,0); //Clear flag
-	rx_flag = 1; 
 }

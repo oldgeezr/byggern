@@ -10,8 +10,10 @@
 #endif
 
 #include "menu.h"
+#include "uart.h"
 const uint8_t N_OPTIONS = MENU - PLAY;
-const uint8_t P_OPTIONS = PLAY_INGAME - PLAY_NEWGAME;
+const uint8_t P_OPTIONS = PLAY_INGAME - PLAY_NEWGAME; // Not used!
+const uint8_t G_OPTIONS = GAME_STYLE - MANUAL;
 
 #include "oled.h"
 #include "joystick.h"
@@ -22,10 +24,13 @@ const uint8_t P_OPTIONS = PLAY_INGAME - PLAY_NEWGAME;
 uint8_t state = MENU;
 uint8_t ingame = 0;
 uint8_t lives = 3;
+uint8_t start_game = 0;
 
 void MENU_run(void) {
 	
-	if (ingame){
+	if (start_game) {
+		GAME_root();
+	} else if (ingame){
 		PLAY_root();
 	} else {
 		MENU_root();
@@ -49,19 +54,77 @@ void MENU_root(void) {
 	if (direction == DOWN) {
 		previous_option = option;
 		option = ((option - 1) + N_OPTIONS) % N_OPTIONS;
+		// printf("MANU_root option = %d, n_option = %d\n", option, N_OPTIONS);
 		MENU_select(option);
 		OLED_scroll_page_left(previous_option,3);
 		_delay_ms(250);
 	}
 	if (direction == RIGHT) {
 		if (option == PLAY) {;
-			ingame = 1;
-		} 
-		state = option;
+			start_game = 1;
+			ingame = 0;
+			state = GAME_STYLE;
+		} else {
+			state = option;
+		}
 		MENU_draw();
 	}
 	if (direction == BTN_DOWN) {
 		state = MENU;
+		option = PLAY;
+		ingame = 0;
+		start_game = 0;
+		previous_option = PLAY;
+		MENU_draw();
+	}
+}
+
+void GAME_root(void) {
+	
+	static game_options option = MANUAL - MANUAL;
+	static game_options previous_option = MANUAL - MANUAL;
+	
+	joystick_control direction = JOYSTICK_get_direction();
+	
+	if (direction == UP) {
+		previous_option = option;
+		option = (option + 1) % (G_OPTIONS);
+		GAME_select(option);
+		OLED_scroll_page_left(previous_option,3);
+		// printf("GAME_root option = %d, previous_option = %d\n", option, previous_option);
+		_delay_ms(250);
+		printf("UP\n");
+	}
+	if (direction == DOWN) {
+		previous_option = option;
+		option = ((option - 1) + G_OPTIONS) % G_OPTIONS;
+		GAME_select(option);
+		OLED_scroll_page_left(previous_option,3);
+		// printf("GAME_root option = %d, previous_option = %d\n", option, previous_option);
+		_delay_ms(250);
+		printf("DOWN\n");
+	}
+	if (direction == RIGHT) {
+		if (option == MANUAL-MANUAL) {
+			// Send manual command CAN
+			CAN_send_command('M');
+			printf("M\n");
+		} else if (AUTO-MANUAL) {
+			// Send auto command CAN
+			CAN_send_command('A');
+			printf("A\n");
+		}
+		ingame = 1;
+		start_game = 0;
+		state = PLAY;
+		option = MANUAL - MANUAL;
+		previous_option = MANUAL - MANUAL;
+		MENU_draw();
+	}
+	if (direction == BTN_DOWN) {
+		state = MENU;
+		ingame = 0;
+		start_game = 0;
 		option = PLAY;
 		previous_option = PLAY;
 		MENU_draw();
@@ -108,6 +171,7 @@ void PLAY_root(void) {
 		// have to do some resets here
 		state = MENU;
 		ingame = 0; // Go back to menu root
+		start_game = 0;
 		CAN_send_command('S'); // STOP game
 		option = PLAY;
 		previous_option = PLAY;
@@ -129,6 +193,20 @@ void MENU_select(menu_options option) {
 			break;
 		case MENU:
 			break;
+	}
+}
+
+void GAME_select(game_options option) {
+	
+	switch(option) {
+		case MANUAL-MANUAL:
+		OLED_scroll_page_right(MANUAL,-5);
+		break;
+		case AUTO-MANUAL:
+		OLED_scroll_page_right(AUTO,-5);
+		break;
+		case GAME_STYLE:
+		break;
 	}
 }
 
@@ -176,6 +254,13 @@ void MENU_draw_info(void) {
 	OLED_write_align_center(64,5,"Erlend H");
 }
 
+void GAME_draw_mode(void) {
+	OLED_clear();
+	OLED_write_align_left(36,3,"MANUAL");
+	OLED_scroll_page_right(3,0);
+	OLED_write_align_left(36,4,"AUTO");
+}
+
 void PLAY_draw_ingame(void) {
 	OLED_clear();
 	OLED_write_align_center(64,1,"IN GAME");
@@ -212,6 +297,9 @@ void MENU_draw(void) {
 			break;
 		case PLAY_STOP:
 			PLAY_draw_stop();
+			break;
+		case GAME_STYLE:
+			GAME_draw_mode();
 			break;
 	}
 }
