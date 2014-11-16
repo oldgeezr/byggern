@@ -18,7 +18,7 @@ Servo myservo;
 int x_axis;
 int score;
 int flag = 1;
-int state = 0;
+//int state = 0;
 
 MCP_CAN CAN0(53); // Set CS to pin 53
 
@@ -28,11 +28,21 @@ MCP_CAN CAN0(53); // Set CS to pin 53
 #define EN A5
 #define DIR A6
 
-#define SERVO_PIN 4
+#define SERVO_PIN 5
 #define DIODE_PIN A7
-#define SOLENOID_PIN 13
+#define SOLENOID_PIN 8
 
 #define CENTER 3700 //Needs to be changed...
+
+enum state_t {
+  STANDBY,
+  MANUAL,
+  AUTO,
+  LOOSE
+};
+
+state_t previous_state = STANDBY;
+state_t state = STANDBY;
 
 /*********************************************************************************************************
   SETUP
@@ -78,6 +88,7 @@ void setup(void) {
   /*==============SERVO==============*/
 
   myservo.attach(SERVO_PIN);
+  myservo.write(90);
   
   /*=============DIODE==============*/
   pinMode(A7,INPUT);
@@ -200,8 +211,8 @@ void print_can_msg(void) {
   Serial.println();
 }
 
-uint8_t get_diode_status(void) {
-  uint8_t temp;
+int get_diode_status(void) {
+  int temp;
   temp += analogRead(DIODE_PIN);
   temp += analogRead(DIODE_PIN);
   //Serial.print("Diode:");
@@ -210,117 +221,128 @@ uint8_t get_diode_status(void) {
 }
 
 void score_counter(void) {
- if((get_diode_status() < 25) && flag) {
-   score++;
-   flag = 0;
-   state = 0; 
-   unsigned char stmp[1] = {1};
-   CAN0.sendMsgBuf(0x05, 0, 1, stmp); 
- }
+   Serial.println(get_diode_status());
+   if((get_diode_status() < 50) && flag) {
+     score++;
+     flag = 0;
+     state = LOOSE; 
+     unsigned char stmp[1] = {1};
+     CAN0.sendMsgBuf('L', 0, 1, stmp);
+     CAN0.sendMsgBuf('L', 0, 1, stmp);
+     CAN0.sendMsgBuf('L', 0, 1, stmp);
+   }
+}
+
+static inline void manual_control(char command) {
+      if (command == 'S') {
+         state = STANDBY; 
+      }
+      
+      char carriage_control = rxBuf[1];
+      char servo_control = rxBuf[2];
+      char solenoid_control = rxBuf[3];
+      
+      /*===========CARRIAGE CONTROL==========*/
+      switch(carriage_control) {
+        case 'L': //left
+          carriage_speed(150);
+          carriage_left();
+          break;
+        case 'R': //right
+          carriage_speed(150);
+          carriage_right();
+          break;
+        default:
+          carriage_speed(0);
+          break;
+       }
+
+       /*================SERVO===============*/
+       uint8_t pos = 150-servo_control;
+       if((pos > 50) && (pos < 140)) {
+         myservo.write(pos);
+       }
+       
+       /*==============SOLENOID==============*/
+       switch(solenoid_control) {
+        case 1: //left
+          digitalWrite(SOLENOID_PIN,HIGH);
+          delay(250);
+          digitalWrite(SOLENOID_PIN,LOW);
+          break;
+        case 2: //right
+          digitalWrite(SOLENOID_PIN,HIGH);
+          delay(250);
+          digitalWrite(SOLENOID_PIN,LOW);
+          break;
+        case 3: //Both
+          digitalWrite(SOLENOID_PIN,HIGH);
+          delay(250);
+          digitalWrite(SOLENOID_PIN,LOW);
+          break;
+       }
+  }
+  
+
+void fsm(char command) {
+
+  switch(state) {
+    case STANDBY:
+      Serial.println("STANDBY");
+      if(command == 'M') {
+        state = MANUAL;
+      }
+      else if(command == 'A') {
+        state = AUTO;
+      }
+      break;  
+    case AUTO:
+      Serial.println("AUTO");
+      previous_state = state;
+      //plan_b();
+      //score_counter(); 
+      break;
+    case MANUAL:
+       //Serial.println("MANUAL");
+       previous_state = state;
+       manual_control(command); 
+       score_counter(); 
+       break;
+    case LOOSE:
+       Serial.println("LOOSE");
+       if(command == 'N') {
+           //New game
+            score = 0;
+            flag = 1;
+            state = previous_state; 
+        } else if(command == 'C') {
+            //Continue
+            flag = 1;
+            state = previous_state;
+        }
+       break;
+  }  
 }
 
 /*********************************************************************************************************
   LOOP
 *********************************************************************************************************/
 
-void loop() {    
+void loop() { 
+
+    char command = 0;
+  
     if(!digitalRead(2)) {
-      CAN0.readMsgBuf(&len, rxBuf);              // Read data: len = data length, buf = data byte(s)
-      rxId = CAN0.getCanId();                    // Get message ID
-      
-      //print_can_msg();
-      
-      char command = rxBuf[0];
-      
-      /*==============FSM==============*/
-      if(!state) {
-       
-          if(command == 'N') {
-             //New game
-              score = 0;
-              flag = 1;
-              state = 1; 
-          }
-          if(command == 'C') {
-              //Continue
-              flag = 1;
-              state = 1;
-          }
-      } else {
-          if (command == 'S') {
-             state = 0; 
-          }
-          
-          char carriage_control = rxBuf[1];
-          char servo_control = rxBuf[2];
-          char solenoid_control = rxBuf[3];
-          
-          /*===========CARRIAGE CONTROL==========*/
-          switch(carriage_control) {
-            case 'L': //left
-              carriage_speed(110);
-              carriage_left();
-              break;
-            case 'R': //right
-              carriage_speed(110);
-              carriage_right();
-              break;
-            default:
-              carriage_speed(0);
-              break;
-           }
-    
-           /*================SERVO===============*/
-           uint8_t pos = 150-servo_control;
-           if((pos > 50) && (pos < 140)) {
-             myservo.write(pos);
-           }
-           
-           /*==============SOLENOID==============*/
-           switch(solenoid_control) {
-            case 1: //left
-              digitalWrite(SOLENOID_PIN,HIGH);
-              delay(250);
-              digitalWrite(SOLENOID_PIN,LOW);
-              break;
-            case 2: //right
-              digitalWrite(SOLENOID_PIN,HIGH);
-              delay(250);
-              digitalWrite(SOLENOID_PIN,LOW);
-              break;
-            case 3: //Both
-              digitalWrite(SOLENOID_PIN,HIGH);
-              delay(250);
-              digitalWrite(SOLENOID_PIN,LOW);
-              break;
-           }
-           score_counter();
-      }
-      
-      Serial.print("Command and state: ");
-      Serial.print(command);
-      Serial.print(" ");
-      Serial.println(state);
+        CAN0.readMsgBuf(&len, rxBuf);              // Read data: len = data length, buf = data byte(s)
+        rxId = CAN0.getCanId();                    // Get message ID
+        //print_can_msg();
+        command = rxBuf[0];
+        fsm(command);
     }
-   
-   
-   
-   /*
-   carriage_init(); 
-   carriage_center();
-   delay(1000);
-   carriage_init();
-   carriage_goto_pos(1500);
-   delay(1000);
-   carriage_init();
-   carriage_goto_pos(7000);
-   delay(1000);
-   */
-   
-   //Serial.print("Decoder: ");
-   //Serial.println(x_axis);
-   // score_counter();
-   // Serial.println(score);
+ 
+    //Serial.println("state: ");
+    //int k = state;
+    //Serial.print(state);
 }
 
 
