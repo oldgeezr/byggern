@@ -178,26 +178,4 @@ void OLED_scroll_page_left(uint8_t page,uint8_t offset) {
 	*command = SET_ACTIVATE_SCROLL;
 	_delay_ms(100);
 	*command = SET_DEACTIVATE_SCROLL;
-	
-	//Experimental nice feature
-	//OLED_write_align_left(20,(page+offset),'>');
 }
-
-//SRAM functions
-/*
-int OLED_sram_print_char(char c) {
-	for (uint8_t i = 0; i < 4; i++) {
-		SRAM_write(page*128 + col + i, pgm_read_byte(&font8[c-' '][i]));
-	}
-	return 0;
-}
-
-int OLED_sram_print(char *data) {
-	uint16_t i = 0;
-	while(data[i] != '\0'){
-		OLED_sram_print_char(data[i]);
-		i++;
-	}
-	return 0;
-}
-*/

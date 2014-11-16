@@ -37,8 +37,7 @@ uint8_t CAN_transmit_complete();
 void CAN_send_command(uint8_t cmd);
 can_message_t CAN_msg_receive();
 void CAN_test_loopback_msg(void);
-void CAN_test_msg_normal_mode(void);
+uint8_t CAN_send_controls(void);
 void CAN_test_receive(void);  
-//void CAN_int_vect();
 
 #endif

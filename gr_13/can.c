@@ -54,22 +54,6 @@ void CAN_send_command(uint8_t cmd) {
 	CAN_msg_send(&msg);
 }
 
-void CAN_send_hid(void) {
-	can_message_t msg;
-	slider_position position;
-	
-	position = SLIDER_get_position();
-	
-	msg.id = 155;
-	msg.length = 2;
-	msg.data[0] = position.left_pos;
-	msg.data[1] = position.right_pos;
-	
-	CAN_msg_send(&msg);
-	
-	_delay_ms(10);
-}
-
 can_message_t CAN_msg_receive(void) {
 	can_message_t msg;
 	
@@ -107,6 +91,42 @@ can_status_flag CAN_error(void) {
 		return TX_ERROR;
 	}
 	return NO_ERROR;
+}
+
+uint8_t CAN_send_controls(void) {
+	can_message_t msg;
+	
+	joystick_control joy_control;
+	slider_position position;
+	slider_btn_state btn_state;
+	
+	position = SLIDER_get_position();
+	joy_control = JOYSTICK_get_direction();
+	btn_state = SLIDER_get_btn_state();
+	
+	// printf("CAN msg: %d, %d, %d \n", position.right_pos, joy_control, btn_state);
+	
+	msg.id = 155;
+	msg.length = 8;
+	
+	msg.data[0] = '0'; //Command
+	msg.data[1] = joy_control;
+	msg.data[2] = position.right_pos;
+	msg.data[3] = btn_state;
+	msg.data[4] = 0;
+	msg.data[5] = 0;
+	msg.data[6] = 0;
+	msg.data[7] = 0;
+	
+	// printf("CAN msg: %d, %d, %d \n", msg.data[1], msg.data[2], msg.data[3]);
+	
+	CAN_msg_send(&msg);
+	
+	if (joy_control == BTN_DOWN) {
+		return 1;
+		} else {
+		return 0;
+	}
 }
 
 ISR(INT2_vect) {
@@ -155,33 +175,4 @@ void CAN_test_receive(void) {
 		printf("%d ,", received_msg.data[i]);
 	}
 	printf("\n");
-}
-
-void CAN_test_msg_normal_mode(void) {
-	can_message_t msg;
-	
-	joystick_control joy_control;
-	slider_position position;
-	slider_btn_state btn_state;
-	
-	position = SLIDER_get_position();
-	joy_control = JOYSTICK_get_direction();
-	btn_state = SLIDER_get_btn_state();
-	
-	msg.id = 155;
-	msg.length = 8;
-	
-	msg.data[0] = '0'; //Command
-	msg.data[1] = joy_control;
-	msg.data[2] = position.right_pos;
-	msg.data[3] = btn_state;
-	msg.data[4] = 0;
-	msg.data[5] = 0;
-	msg.data[6] = 0;
-	msg.data[7] = 0;
-	
-	// printf("CAN msg: %d, %d, %d \n", msg.data[1], msg.data[2], msg.data[3]);
-	
-	CAN_msg_send(&msg);
-	
 }

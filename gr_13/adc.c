@@ -17,6 +17,5 @@ uint8_t ADC_read(adc_channel ch) {
 	volatile char *adc = (char *) 0x1400;
 	adc[1] = ch;
 	_delay_us(40);
-	
 	return adc[0];
 }

@@ -11,23 +11,19 @@
 #include <stdint.h>
 
 typedef enum {
-	PLAY = 0,
-	OPTIONS = 1,
-	INFO = 2,
-	MENU = 3
+	PLAY,
+	OPTIONS,
+	INFO
 } menu_options;
 
 typedef enum {
-	PLAY_NEWGAME = 4,
-	PLAY_CONTINUE = 5,	
-	PLAY_INGAME = 6,
-	PLAY_STOP = 7
-} play_options;
+	PLAY_NEWGAME,
+	PLAY_CONTINUE,
+} loose_options;
 
 typedef enum {
-	MANUAL = 8,
-	AUTO = 9,
-	GAME_STYLE = 10
+	MANUAL,
+	AUTO,
 } game_options;
 
 typedef enum {
@@ -36,20 +32,28 @@ typedef enum {
 	NOC = '0'
 } game_command;
 
+typedef enum {
+	MENU,
+	GAME,
+	LOOSE,
+	INGAME
+} menu_state_t;
+
 void MENU_run(void);
 void MENU_root(void);
-void MENU_draw_menu(void);
-void MENU_draw(void);
+void MENU_init(void);
+void MENU_draw(menu_options option);
 void MENU_select(menu_options option);
 void MENU_draw_play(void);
 void MENU_draw_options(void);
 void MENU_draw_info(void);
-void GAME_root(void);
-void GAME_draw_mode(void);
+void MENU_game(void);
+void MENU_draw_mode_select(void);
 void GAME_select(game_options option);
-void PLAY_root(void);
-void PLAY_select(play_options option);
-void PLAY_draw_ingame(void);
-void PLAY_draw_stop(void);
+void MENU_loose(void);
+void LOOSE_select(loose_options option);
+void MENU_draw_ingame(void);
+void MENU_ingame(void);
+void MENU_draw_loose(void);
 
 #endif

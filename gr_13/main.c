@@ -27,7 +27,7 @@ int main(void)
 	usart_setup();
 	SRAM_init();
 	OLED_init();
-	MENU_draw_menu();
+	MENU_init();
 	//SRAM_test();
 	JOYSTICK_init();
 	SLIDER_init();
@@ -36,21 +36,7 @@ int main(void)
 	GICR |= (1 << INT2); //For CAN rxbuf
 	sei();
 	
-	uint8_t schedular = 0;
-	
-	for(;;) {
-		if (schedular) {
-			MENU_run();
-		} else {
-			CAN_test_msg_normal_mode();
-		}
-		schedular ^= 1;
-		
-		//SLIDER_get_position();
-		
-		// CAN_test_msg_normal_mode();
-		// CAN_test_receive();
-	
-		//_delay_ms(10);
+	for(;;) {	
+		MENU_run();
     }
 }

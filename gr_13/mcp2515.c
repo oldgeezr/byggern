@@ -89,13 +89,6 @@ uint8_t MCP2515_read_status(void) {
 	return result;
 }
 
-/*
-#define MCP_RTS_TX0		0x81
-#define MCP_RTS_TX1		0x82
-#define MCP_RTS_TX2		0x84
-#define MCP_RTS_ALL		0x87
-*/
-
 void MCP2515_load_tx_buffer(uint8_t data) {
 	SPI_select();
 	SPI_write(MCP_LOAD_TX0);

@@ -28,17 +28,12 @@ void JOYSTICK_init() {
 void JOYSTICK_calibrate() {
 	mid_x = ADC_read(JOY_X);
 	mid_y = ADC_read(JOY_Y);
-	
-	// printf("midx: %d, midy: %d\n", mid_x, mid_y); // Typical 151, 151
 }
 
 int8_t JOYSTICK_get_position(joystick_control axis) {
 	
 	uint8_t mid;
-	
 	uint8_t pos = ADC_read(axis);
-	
-	// printf("pos: %d\n", pos);
 	
 	if (axis) {
 		mid = mid_x;
@@ -62,8 +57,6 @@ joystick_control JOYSTICK_get_direction() {
 	
 	x_percent = JOYSTICK_get_position(JOY_X);
 	y_percent = JOYSTICK_get_position(JOY_Y);
-	
-	// printf("xpercent: %d, ypercent: %d\n", x_percent, y_percent);
 	
 	// Button
 	if (!((1 << PB0) & PINB)) {
@@ -102,21 +95,15 @@ slider_position SLIDER_get_position(void) {
 	uint16_t temp;
 	
 	temp = 0;
-	temp += ADC_read(SLIDER_L);
-	temp += ADC_read(SLIDER_L);
-	temp += ADC_read(SLIDER_L);
+	temp += ADC_read(SLIDER_R);
+	temp += ADC_read(SLIDER_R);
+	temp += ADC_read(SLIDER_R);
 	temp = temp / 3;
 	r_pos = temp;
-	
-	/*
-		NOTE TO SELF: The slider on the board is not working properly
-	*/
 	
 	// Convert to percentage
 	// position.left_pos = 100*l_pos/255;
 	position.right_pos = 100*r_pos/255;
-	
-	//printf("x: %d\n", position.right_pos); //  position.left_pos);
 	
 	return position;
 }
