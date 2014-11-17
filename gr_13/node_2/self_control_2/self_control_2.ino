@@ -18,15 +18,17 @@ Servo myservo;
 int x_axis;
 int score;
 int flag = 1;
-int state = 0;
 uint8_t car_init = 1; 
 uint8_t init_right = 1;
+uint8_t going_right = 1;
 
 MCP_CAN CAN0(53); // Set CS to pin 53
 
-#define MAX 95
-#define CAMERA_OFFSET 10;
+#define MAX 92
 #define BALL_OFFSET 3
+
+#define AUTOMATIC_SPEED 150
+#define MANUAL_SPEED 150
 
 #define OE A2
 #define RST A3
@@ -34,11 +36,21 @@ MCP_CAN CAN0(53); // Set CS to pin 53
 #define EN A5
 #define DIR A6
 
-#define SERVO_PIN 4
+#define SERVO_PIN 10
 #define DIODE_PIN A7
-#define SOLENOID_PIN 13
+#define SOLENOID_PIN 8
 
-#define CENTER 3700 //Needs to be changed...
+#define DIODE_THRESHOLD 100
+
+enum state_t {
+  STANDBY,
+  MANUAL,
+  AUTO,
+  LOOSE
+};
+
+state_t previous_state = STANDBY;
+state_t state = STANDBY;
 
 /*********************************************************************************************************
   SETUP
@@ -49,6 +61,11 @@ void setup(void) {
   
   Serial.begin(38400);
   Serial.println("MCP2515 CAN Receive init...");
+  
+  /*===============RASPI INIT=============*/
+  
+  Serial3.begin(38400);
+  Serial.println("Ras PI camera receive init...");
 
   /*==============CAN INIT==============*/
   
@@ -64,7 +81,7 @@ void setup(void) {
   
   Wire.begin(); 
 
-  carriage_init_left();
+  carriage_init_left_slow();
 
   /*===========DECODER INIT============*/
 
@@ -84,7 +101,7 @@ void setup(void) {
   /*===========SERVO INIT===========*/
 
   myservo.attach(SERVO_PIN);
-  myservo.write(90);
+  myservo.write(100);
     
   /*===========DIODE INIT===========*/
   pinMode(A7,INPUT);
@@ -159,10 +176,21 @@ static inline void carriage_left(void) {
    digitalWrite(DIR,LOW);
 }
 
+void carriage_init_left_slow(void) {
+  myservo.write(100);
+  carriage_speed(110);
+  carriage_left();
+  delay(1200);
+  carriage_speed(0);
+  delay(300);
+  x_axis = 0;
+  myservo.write(100);
+}
+
 void carriage_init_left(void) {
   carriage_speed(255);
   carriage_left();
-  delay(300);
+  delay(600);
   carriage_speed(0);
   delay(300);
   x_axis = 0;
@@ -171,7 +199,7 @@ void carriage_init_left(void) {
 void carriage_init_right(void) {
   carriage_speed(255);
   carriage_right();
-  delay(300);
+  delay(600);
   carriage_speed(0);
   delay(300);
   x_axis = MAX*100;
@@ -202,14 +230,16 @@ uint8_t carriage_goto_pos(int x_percent) {
   
   if (x > x_percent) { 
   	do {
+            going_right = 0;
             x = x_axis/MAX;
-            carriage_speed(150);
+            carriage_speed(AUTOMATIC_SPEED);
             carriage_left();
   	} while (x > x_percent);
   } else {
   	do {
+             going_right = 1;
              x = x_axis/MAX;
-             carriage_speed(150);
+             carriage_speed(AUTOMATIC_SPEED);
   	     carriage_right();
   	} while (x < x_percent);
   }
@@ -222,11 +252,19 @@ void calibrate_carriage(void) {
   Serial.print("Goto: 0 x_axis: ");
   Serial.println(x_axis);
   delay(1000);
-  carriage_goto_pos(100);
-  Serial.print("Goto: 100 x_axis: ");
+  carriage_goto_pos(25);
+  Serial.print("Goto: 50 x_axis: ");
   Serial.println(x_axis);
   delay(1000); 
   carriage_goto_pos(50);
+  Serial.print("Goto: 50 x_axis: ");
+  Serial.println(x_axis);
+  delay(1000); 
+  carriage_goto_pos(75);
+  Serial.print("Goto: 50 x_axis: ");
+  Serial.println(x_axis);
+  delay(1000); 
+  carriage_goto_pos(100);
   Serial.print("Goto: 50 x_axis: ");
   Serial.println(x_axis);
   delay(1000); 
@@ -255,21 +293,26 @@ void print_can_msg(void) {
   DIODE
 *********************************************************************************************************/
 
-uint8_t get_diode_status(void) {
-  uint8_t temp;
-  temp += analogRead(DIODE_PIN);
+int get_diode_status(void) {
+  int temp = 0;
+  temp = analogRead(DIODE_PIN);
   temp += analogRead(DIODE_PIN);
   return (temp/2);  
 }
 
 void score_counter(void) {
- if((get_diode_status() < 25) && flag) {
-   score++;
-   flag = 0;
-   state = 0; 
-   unsigned char stmp[1] = {1};
-   CAN0.sendMsgBuf(0x05, 0, 1, stmp); 
- }
+   if((get_diode_status() < DIODE_THRESHOLD) && flag) {
+     score++;
+     flag = 0;
+     state = LOOSE; 
+     unsigned char stmp[1] = {1};
+     CAN0.sendMsgBuf('L', 0, 1, stmp);
+     CAN0.sendMsgBuf('L', 0, 1, stmp);
+     CAN0.sendMsgBuf('L', 0, 1, stmp);
+     
+     carriage_init_left_slow();  
+     
+   }
 }
 
 /*********************************************************************************************************
@@ -277,17 +320,17 @@ void score_counter(void) {
 *********************************************************************************************************/
 
 static inline uint8_t get_x(void) {
-    while(!(Serial.available() > 0));
-    while(Serial.read() != 'X');
-    while(!(Serial.available() > 0));
-    return Serial.read();
+    while(!(Serial3.available() > 0));
+    while(Serial3.read() != 'X');
+    while(!(Serial3.available() > 0));
+    return Serial3.read();
 }
 
 static inline uint8_t get_y(void) {
-    while(!(Serial.available() > 0));
-    while(Serial.read() != 'Y');
-    while(!(Serial.available() > 0));
-    return Serial.read();
+    while(!(Serial3.available() > 0));
+    while(Serial3.read() != 'Y');
+    while(!(Serial3.available() > 0));
+    return Serial3.read();
 }
 
 /*********************************************************************************************************
@@ -314,8 +357,7 @@ static inline uint8_t calculate_vector(void) {
   dy = y0-y1;
   dx = x1-x0;
 
-  a = (float(dy))/(float(dx)); //A way to avoid float may be to multiply with 100 (percentage conv)
-  //a = dy/dx; Check if this works 
+  a = (float(dy))/(float(dx));
 
   x = y0*a + x0;
 
@@ -329,7 +371,7 @@ static inline uint8_t calculate_vector(void) {
   return ((x * 100) / 255); 
 }
 
-void func() {
+void self_predictor() {
  
  uint8_t x0 = 0;
  uint8_t x1 = 0;
@@ -376,10 +418,8 @@ void func() {
         delay(100);
         digitalWrite(SOLENOID_PIN,LOW);
         if(x0 > 50) {
-          //init_right = 0;
           carriage_init_right();  
         } else {
-          //init_right = 1;
           carriage_init_left();  
         }
         break;
@@ -387,35 +427,121 @@ void func() {
  }
 }
 
-static inline void plan_b(void) {
+static inline void self_control(void) {
    
-   uint8_t y0 = (get_y()*100)/255;
-   uint8_t x0 = (get_x()*100)/255;
+   static uint8_t y0;
+   static uint8_t x0;
+   
+   x0 = (get_x()*100)/255;
+   y0 = (get_y()*100)/191;
    
    carriage_goto_pos(x0);
    
-   if(y0 < 50 && x0 < 40) {
-        myservo.write(150);
-    } else if(y0 < 50 && x0 > 230) {
-        myservo.write(50);
-    } else {
-        myservo.write(100); 
-    }
-  
-    if((y0 > 5) && (y0 < 40)) {
+   if(y0 < 50 && x0 < 10) {
+        myservo.write(140);
+   } else if(y0 < 50 && x0 > 90) {
+        myservo.write(60);
+   } else {
+        myservo.write(90); 
+   }
+   
+   y0 = (get_y()*100)/191;
+   
+   if(y0 != 0 && y0 < 20) {
         digitalWrite(SOLENOID_PIN,HIGH);
         delay(100);
         digitalWrite(SOLENOID_PIN,LOW);
-        delay(100);
+   } 
+}
+
+/*********************************************************************************************************
+  Manual Control
+*********************************************************************************************************/
+
+static inline void manual_control(char command) {
+    
+    char carriage_control = rxBuf[1];
+    char servo_control = rxBuf[2];
+    char solenoid_control = rxBuf[3];
+    
+    /*===========CARRIAGE CONTROL==========*/
+    switch(carriage_control) {
+      case 'L': //left
+        carriage_speed(MANUAL_SPEED);
+        carriage_left();
+        break;
+      case 'R': //right
+        carriage_speed(MANUAL_SPEED);
+        carriage_right();
+        break;
+      default:
+        carriage_speed(0);
+        break;
+     }
+
+     /*================SERVO===============*/
+     uint8_t pos = 150-servo_control;
+     if((pos > 50) && (pos < 140)) {
+       myservo.write(pos);
+     }
+     
+     /*==============SOLENOID==============*/
+     switch(solenoid_control) {
+      case 1: //left
         digitalWrite(SOLENOID_PIN,HIGH);
-        delay(100);
+        delay(250);
         digitalWrite(SOLENOID_PIN,LOW);
-        if(x0 > 50) {
-          carriage_init_right();  
-        } else {
-          carriage_init_left();  
+        break;
+      case 2: //right
+        digitalWrite(SOLENOID_PIN,HIGH);
+        delay(250);
+        digitalWrite(SOLENOID_PIN,LOW);
+        break;
+      case 3: //Both
+        digitalWrite(SOLENOID_PIN,HIGH);
+        delay(250);
+        digitalWrite(SOLENOID_PIN,LOW);
+        break;
+     }
+}
+
+/*********************************************************************************************************
+  State Machine 
+*********************************************************************************************************/
+
+void fsm(char command) {
+
+  switch(state) {
+    case STANDBY:
+      if(command == 'M') {
+        state = MANUAL;
+      } else if(command == 'A') {
+        state = AUTO;
+      }
+      break;  
+    case AUTO:
+      previous_state = state;
+      self_control();
+      score_counter(); 
+      break;
+    case MANUAL:
+       previous_state = state;
+       manual_control(command); 
+       score_counter(); 
+       break;
+    case LOOSE:
+       if(command == 'N') {
+           //New game
+            score = 0;
+            flag = 1;
+            state = previous_state; 
+        } else if(command == 'C') {
+            //Continue
+            flag = 1;
+            state = previous_state;
         }
-    }  
+       break;
+  }  
 }
 
 /*********************************************************************************************************
@@ -423,7 +549,23 @@ static inline void plan_b(void) {
 *********************************************************************************************************/
 
 void loop() {
-   plan_b();  
+  //calibrate_carriage();
+  
+  char command = 0;
+  if(!digitalRead(2)) {
+      CAN0.readMsgBuf(&len, rxBuf);              // Read data: len = data length, buf = data byte(s)
+      rxId = CAN0.getCanId();                    // Get message ID
+      //print_can_msg();
+      command = rxBuf[0];
+      
+      if(command == 'S') {
+        state = STANDBY;
+        previous_state = STANDBY;
+        flag = 1;
+        carriage_init_left_slow();  
+      }
+      fsm(command);
+  }
 }
 
 /*********************************************************************************************************
